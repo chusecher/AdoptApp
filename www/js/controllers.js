@@ -53,4 +53,34 @@ angular.module('starter.controllers', [])
 })
 
 .controller('PlaylistCtrl', function($scope, $stateParams) {
+})
+.controller('PubsCtrl', function($scope, $ionicModal){
+  $scope.pub;
+  $scope.cards = [
+    {id: 1, date: 'Hoy', description:'asasssa sas sa   as as ablablablabal', breed: 'Beagle', photo: 'textico', reporter: 'Pepito1'},
+    {date: 'Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Pincher', photo: 'textico', reporter: 'Pepito1'},
+    {id: 3, date: 'Pasado Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Criollito', photo: 'textico', reporter: 'Pepito1'},
+    {id: 4, date: 'Antepasado Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'textico', reporter: 'Pepito1'},
+    {id: 5, date: 'Ultraantepasado mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'textico', reporter: 'Pepito1'}
+  ];
+
+  $ionicModal.fromTemplateUrl('templates/publication.html', {
+    scope: $scope
+  }).then(function(modal){
+    $scope.modal = modal;
+  });
+
+  $scope.closePub = function() {
+    $scope.modal.hide();
+  };
+
+  // Open the login modal
+  $scope.openPub = function($pubId) {
+    $scope.pub = $pubId;
+    console.log('Doing login '+ parseInt($scope.pub), $scope.pub);
+    $scope.modal.show();
+    console.log('Testing cards '+$scope.cards[1].id, $scope.cards[1].id == $scope.pub);
+  };
+
+
 });
