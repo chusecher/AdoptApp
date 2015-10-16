@@ -7,10 +7,9 @@
     </ion-header-bar>
     <ion-content>
         <div class="animal-info">
-            <h2>{{cards[pub-1].date}}</h2>
+            <p align="center">{{cards[pub-1].date}}</p>
             <div class="photo">
                 <img src="{{cards[pub-1].photo}}">
-                {{cards[pub-1].photo}}
             </div>
             <div>
                 <p>Descripción: {{cards[pub-1].description}}</p>
@@ -26,8 +25,8 @@
             </div>
         </div>
         <div>
-            <button class="button button-block button-positive" ng-click="openPub({{card.id}})">
-                Adoptame!
+            <button class="button button-block button-positive">
+                ¡Adoptame!
             </button>
         </div>
 

@@ -61,11 +61,11 @@ angular.module('starter.controllers', [])
 .controller('PubsCtrl', function($scope, $ionicModal){
   $scope.pub;
   $scope.cards = [
-    {id: 1, date: 'Hoy', description:'asasssa sas sa   as as ablablablabal', breed: 'Beagle', photo: 'textico', reporter: 'Pepito1'},
-    {id: 2, date: 'Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Pincher', photo: 'textico', reporter: 'Pepito1'},
-    {id: 3, date: 'Pasado Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Criollito', photo: 'textico', reporter: 'Pepito1'},
-    {id: 4, date: 'Antepasado Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'textico', reporter: 'Pepito1'},
-    {id: 5, date: 'Ultrana', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'textico', reporter: 'Pepito1'}
+    {id: 1, date: 'Hoy', description:'asasssa sas sa   as as ablablablabal', breed: 'Beagle', photo: 'img/perro.jpg', reporter: 'Pepito1'},
+    {id: 2, date: 'Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Pincher', photo: 'img/perro.jpg', reporter: 'Pepito1'},
+    {id: 3, date: 'Pasado Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Criollito', photo: 'img/perro.jpg', reporter: 'Pepito1'},
+    {id: 4, date: 'Antepasado Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'img/perro.jpg', reporter: 'Pepito1'},
+    {id: 5, date: 'Ultrana', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'img/perro.jpg', reporter: 'Pepito1'}
   ];
 
   $ionicModal.fromTemplateUrl('templates/publication.html', {
