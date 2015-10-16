@@ -52,6 +52,10 @@ angular.module('starter.controllers', [])
   ];
 })
 
+.controller('MyProfileCtrl', function($scope) {
+
+})
+
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
 .controller('PubsCtrl', function($scope, $ionicModal){
