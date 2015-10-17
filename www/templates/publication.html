@@ -39,7 +39,7 @@
             Localización
         </div>
         <div ng-controller="MapCtrl">
-            <div id="map-canvas" data-tap-disabled="true"></div>
+            <map on-create="mapCreated(map)"></map>
         </div>
             
         <div class="item item-divider">
@@ -55,7 +55,6 @@
         <div class="button-bar bar-positive">
             <a class="button">¡Adóptame!</a>
         </div>
-        <div id="map" data-tap-disabled="true" ng-init="initMap()">The map</div>
     </ion-content>
 
 </ion-modal-view>

@@ -58,7 +58,7 @@ angular.module('starter.controllers', [])
 
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
-.controller('PubsCtrl', function($scope, $ionicModal, $state, $cordovaGeolocation){
+.controller('PubsCtrl', function($scope, $ionicModal, $state, $ionicLoading){
   $scope.pub;
   $scope.cards = [
     {id: 1, date: 'Hoy', description:'asasssa sas sa   as as ablablablabal', breed: 'Beagle', photo: 'img/perro.jpg', reporter: 'Pepito1'},
@@ -85,26 +85,55 @@ angular.module('starter.controllers', [])
     $scope.modal.show();
   };
 
+  $scope.mapCreated = function(map) {
+    $scope.map = map;
+  };
+
+  $scope.centerOnMe = function () {
+    console.log("Centering");
+    if (!$scope.map) {
+      return;
+    }
+
+    $scope.loading = $ionicLoading.show({
+      content: 'Getting current location...',
+      showBackdrop: false
+    });
+
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      console.log('Got pos', pos);
+      $scope.map.setCenter(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
+      $scope.loading.hide();
+    }, function (error) {
+      alert('Unable to get location: ' + error.message);
+    });
+  };
+
 
 })
 
-.controller('MapCtrl',['$scope',
-  function($scope){
-    //map controller
-    var options = {timeout: 10000, enableHighAccuracy: true};
-    $scope.initMap = function(){
- 
-    var latLng = new google.maps.LatLng(43, -89);
- 
-    var mapOptions = {
-      center: latLng,
-      zoom: 15,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    };
- 
-    $scope.map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
- 
+.controller('MapCtrl', function($scope, $ionicLoading) {
+  $scope.mapCreated = function(map) {
+    $scope.map = map;
   };
-  google.maps.event.addDomListener(window, 'load', $scope.initMap);
-  
-}]);
+
+  $scope.centerOnMe = function () {
+    console.log("Centering");
+    if (!$scope.map) {
+      return;
+    }
+
+    $scope.loading = $ionicLoading.show({
+      content: 'Getting current location...',
+      showBackdrop: false
+    });
+
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      console.log('Got pos', pos);
+      $scope.map.setCenter(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
+      $scope.loading.hide();
+    }, function (error) {
+      alert('Unable to get location: ' + error.message);
+    });
+  };
+});
