@@ -58,8 +58,7 @@ angular.module('starter.controllers', [])
 
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
-.controller('PubsCtrl', function($scope, $ionicModal, $state, $ionicLoading){
-  $scope.pub;
+.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation){
   $scope.cards = [
     {id: 1, date: 'Hoy', description:'asasssa sas sa   as as ablablablabal', breed: 'Beagle', photo: 'img/perro.jpg', reporter: 'Pepito1'},
     {id: 2, date: 'Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Pincher', photo: 'img/perro.jpg', reporter: 'Pepito1'},
@@ -67,9 +66,29 @@ angular.module('starter.controllers', [])
     {id: 4, date: 'Antepasado Mañana', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'img/perro.jpg', reporter: 'Pepito1'},
     {id: 5, date: 'Ultrana', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'img/perro.jpg', reporter: 'Pepito1'}
   ];
+})
+
+.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation) {
+  var options = {timeout: 10000, enableHighAccuracy: true};
+  $cordovaGeolocation.getCurrentPosition(options).then(function(position){
+ 
+    $scope.latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+ 
+    $scope.mapOptions = {
+      center: $scope.latLng,
+      zoom: 15,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+ 
+    //$scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+ 
+  }, function(error){
+    console.log("Could not get location");
+  });
 
   $ionicModal.fromTemplateUrl('templates/publication.html', {
-    scope: $scope
+    scope: $scope,
+    animation: 'slide-in-up'
   }).then(function(modal){
     $scope.modal = modal;
   });
@@ -79,61 +98,12 @@ angular.module('starter.controllers', [])
   };
 
   // Open the publication modal details window
+
   $scope.openPub = function($pubId) {
     $scope.pub = $pubId;
-    console.log('Doing login '+ parseInt($scope.pub), $scope.pub);
     $scope.modal.show();
+    $scope.map = new google.maps.Map(document.getElementById("map"), $scope.mapOptions);
+    
   };
-
-  $scope.mapCreated = function(map) {
-    $scope.map = map;
-  };
-
-  $scope.centerOnMe = function () {
-    console.log("Centering");
-    if (!$scope.map) {
-      return;
-    }
-
-    $scope.loading = $ionicLoading.show({
-      content: 'Getting current location...',
-      showBackdrop: false
-    });
-
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      console.log('Got pos', pos);
-      $scope.map.setCenter(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
-      $scope.loading.hide();
-    }, function (error) {
-      alert('Unable to get location: ' + error.message);
-    });
-  };
-
-
 })
 
-.controller('MapCtrl', function($scope, $ionicLoading) {
-  $scope.mapCreated = function(map) {
-    $scope.map = map;
-  };
-
-  $scope.centerOnMe = function () {
-    console.log("Centering");
-    if (!$scope.map) {
-      return;
-    }
-
-    $scope.loading = $ionicLoading.show({
-      content: 'Getting current location...',
-      showBackdrop: false
-    });
-
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      console.log('Got pos', pos);
-      $scope.map.setCenter(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
-      $scope.loading.hide();
-    }, function (error) {
-      alert('Unable to get location: ' + error.message);
-    });
-  };
-});
