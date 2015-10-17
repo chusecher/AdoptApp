@@ -58,7 +58,7 @@ angular.module('starter.controllers', [])
 
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
-.controller('PubsCtrl', function($scope, $ionicModal){
+.controller('PubsCtrl', function($scope, $ionicModal, $state, $cordovaGeolocation){
   $scope.pub;
   $scope.cards = [
     {id: 1, date: 'Hoy', description:'asasssa sas sa   as as ablablablabal', breed: 'Beagle', photo: 'img/perro.jpg', reporter: 'Pepito1'},
@@ -83,8 +83,28 @@ angular.module('starter.controllers', [])
     $scope.pub = $pubId;
     console.log('Doing login '+ parseInt($scope.pub), $scope.pub);
     $scope.modal.show();
-    console.log('Testing cards '+$scope.cards[1].id, $scope.cards[1].id == $scope.pub);
   };
 
 
-});
+})
+
+.controller('MapCtrl',['$scope',
+  function($scope){
+    //map controller
+    var options = {timeout: 10000, enableHighAccuracy: true};
+    $scope.initMap = function(){
+ 
+    var latLng = new google.maps.LatLng(43, -89);
+ 
+    var mapOptions = {
+      center: latLng,
+      zoom: 15,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+ 
+    $scope.map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+ 
+  };
+  google.maps.event.addDomListener(window, 'load', $scope.initMap);
+  
+}]);
