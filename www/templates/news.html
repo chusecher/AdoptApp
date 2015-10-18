@@ -3,13 +3,13 @@
 		<div ng-repeat="card in cards">
 			<div class="list card">
 				<div class="item item-avatar">
-				    <img src="img/test-photo.jpg">
+				    <img src="{{card.userPhoto}}">
 				    <h3>{{card.reporter}}</h3>
 				    <p>{{card.date}}</p>
 				</div>
 				<div class="item item-body">
-					<h2>Publicación {{card.id}}</h2>
-				    <img class="full-image" src="img/perro.jpg">
+					<h2>{{card.breed}}</h2>
+				    <img class="full-image" src="{{card.photo}}">
 				    <p>{{card.description}}</p>
 				    <button class="button button-block button-positive icon-right ion-chevron-right " ng-click="openPub({{card.id}})">
 						Más
