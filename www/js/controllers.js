@@ -56,6 +56,9 @@ angular.module('starter.controllers', [])
 
 })
 
+.controller('RegisCtrl', function($scope) {
+})
+
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
 .controller('PubsCtrl', function($scope, $state, $cordovaGeolocation){
@@ -115,7 +118,7 @@ angular.module('starter.controllers', [])
   var pictureSource;   // picture source
   var destinationType; // sets the format of returned value
   var url;
-  
+
   // on DeviceReady check if already logged in (in our case CODE saved)
   ionic.Platform.ready(function() {
     //console.log("ready get camera types");
@@ -128,13 +131,13 @@ angular.module('starter.controllers', [])
     pictureSource=navigator.camera.PictureSourceType.CAMERA;
     destinationType=navigator.camera.DestinationType.FILE_URI;
     });
-  
+
   // get upload URL for FORM
   GetUU.query(function(response) {
     $scope.data = response;
     //console.log("got upload url ", $scope.data.uploadurl);
     });
-  
+
   // take picture
   $scope.takePicture = function() {
     //console.log("got camera button click");
@@ -142,7 +145,8 @@ angular.module('starter.controllers', [])
       quality: 50,
       destinationType: destinationType,
       sourceType: pictureSource,
-      encodingType: 0
+      encodingType: 0,
+      saveToPhotoAlbum: true
       };
     if (!navigator.camera)
       {
@@ -161,7 +165,7 @@ angular.module('starter.controllers', [])
       options);
     };
 
-  // do POST on upload url form by http / html form    
+  // do POST on upload url form by http / html form
   $scope.update = function(obj) {
     if (!$scope.data.uploadurl)
       {
@@ -180,7 +184,7 @@ angular.module('starter.controllers', [])
     var params = {};
     params.other = obj.text; // some other POST fields
     options.params = params;
-    
+
     //console.log("new imp: prepare upload now");
     var ft = new FileTransfer();
     ft.upload($scope.mypicture, encodeURI($scope.data.uploadurl), uploadSuccess, uploadError, options);

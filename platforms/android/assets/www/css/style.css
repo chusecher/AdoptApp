@@ -13,3 +13,6 @@ map {
 .scroll {
   height: 100%;
 }
+.larger {
+    font-size: 40px;
+}
