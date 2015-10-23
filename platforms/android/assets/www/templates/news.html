@@ -1,0 +1,32 @@
+<ion-view view-title="Publicaciones" ng-controller="PubCtrl">
+	<ion-content>
+		<div ng-repeat="card in cards">
+			<div class="list card">
+				<div class="item item-avatar">
+				    <img src="{{card.userPhoto}}">
+				    <h3>{{card.reporter}}</h3>
+				    <p>{{card.date}}</p>
+				</div>
+				<div class="item item-body">
+					<h2>{{card.breed}}</h2>
+				    <img class="full-image" src="{{card.photo}}">
+				    <p>{{card.description}}</p>
+				    <button class="button button-block button-positive icon-right ion-chevron-right " ng-click="openPub({{card.id}})">
+						Más
+					</button>
+				</div>
+				<div class="item tabs tabs-secondary tabs-icon-left">
+				    <a class="tab-item" href="#">
+				      <i class="icon ion-social-facebook"></i>
+				    </a>
+				    <a class="tab-item" href="#">
+				      <i class="icon ion-social-twitter"></i>
+				    </a>
+				    <a class="tab-item" href="#">
+				      <i class="icon ion-social-googleplus"></i>
+				    </a>
+		  		</div>
+		  	</div>
+  		</div>
+	</ion-content>
+</ion-view>

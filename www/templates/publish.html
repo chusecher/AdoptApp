@@ -1,0 +1,38 @@
+<ion-view view-title="Publicar">
+  <ion-content>
+    <h1>Publicar</h1>
+    <div class="list">
+    	<div class="item item-divider">
+            Información de Mascota
+        </div>
+        <div class="item">
+        	Foto
+        	<item class="item item-icon-left"><i class="icon ion-chatbubble-working"></i>
+			<label class="item item-input">
+				<textarea ng-model="obj.text" name="posttext" rows="4"></textarea>
+			</label>
+        	<div class="padding">
+				<button class="button button-block button-positive icon-left ion-ios7-camera" ng-click="takePicture()">Camera</button>
+			</div>
+			<div class="padding">
+				<button class="button button-block button-positive icon-right ion-chevron-right" ng-disabled="!imp.text" ng-click="update(obj)">Upload</button>
+			</div>
+        </div>
+    	<label class="item item-input item-floating-label">
+    		<i class="icon ion-ios-paw placeholder-icon larger"></i>
+    		<span class="input-label">Raza</span>    		
+    		<input type="text" placeholder="Raza">
+    	</label>
+    	<label class="item item-input item-floating-label">
+    		<i class="icon ion-card placeholder-icon larger"></i>
+    		<span class="input-label">Nombre</span>    		
+    		<input type="text" placeholder="Nombre">
+    	</label>
+    	<label class="item item-input item-floating-label">
+    		<i class="icon ion-information-circled placeholder-icon larger"></i>
+    		<span class="input-label">Descripción</span>    		
+    		<textarea type="text" placeholder="Descripción"></textarea>
+    	</label>
+    </div>
+  </ion-content>
+</ion-view>

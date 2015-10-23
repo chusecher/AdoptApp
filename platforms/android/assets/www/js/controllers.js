@@ -52,5 +52,57 @@ angular.module('starter.controllers', [])
   ];
 })
 
+.controller('MyProfileCtrl', function($scope) {
+
+})
+
 .controller('PlaylistCtrl', function($scope, $stateParams) {
-});
+})
+.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation){
+  $scope.cards = [
+    {id: 1, date: 'Ayer', description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
+    {id: 2, date: '10 de Octubre', description:'Una mamá pincher dió a luz a cachorritos y están todos disponibles para adopción.', breed: 'Pincher', photo: 'img/pincher1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
+    {id: 3, date: '30 de Septiembre', description:'Ya no tengo los medios para mantener a mi gato. Si alguien lo quiere cuidar.', breed: 'Snowshoe', photo: 'img/snowshoe1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
+    {id: 4, date: '29 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'img/perro.jpg', reporter: 'Pepito1'},
+    {id: 5, date: '15 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'img/perro.jpg', reporter: 'Pepito1'}
+  ];
+})
+
+.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation) {
+  var options = {timeout: 10000, enableHighAccuracy: true};
+  $cordovaGeolocation.getCurrentPosition(options).then(function(position){
+
+    $scope.latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+    $scope.mapOptions = {
+      center: $scope.latLng,
+      zoom: 15,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+
+    //$scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+
+  }, function(error){
+    console.log("Could not get location");
+  });
+
+  $ionicModal.fromTemplateUrl('templates/publication.html', {
+    scope: $scope,
+    animation: 'slide-in-up'
+  }).then(function(modal){
+    $scope.modal = modal;
+  });
+
+  $scope.closePub = function() {
+    $scope.modal.hide();
+  };
+
+  // Open the publication modal details window
+
+  $scope.openPub = function($pubId) {
+    $scope.pub = $pubId;
+    $scope.modal.show();
+    $scope.map = new google.maps.Map(document.getElementById("map"), $scope.mapOptions);
+
+  };
+})

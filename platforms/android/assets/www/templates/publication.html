@@ -1,0 +1,56 @@
+<ion-modal-view>
+    <ion-header-bar class="bar-stable">
+        <h1 class="title">Publicación {{pub}}</h1>
+        <div class="buttons">
+            <button class="button button-clear" ng-click="closePub()">Salir</button>
+        </div>
+    </ion-header-bar>
+    <ion-content>
+        <div class="list">
+            <div class="item item-divider">
+                <p align="center">
+                    {{cards[pub-1].date}}
+                </p>
+            </div>
+            <div class="photo">
+                <img src="{{cards[pub-1].photo}}" width="100%" height="100%"/>
+            </div>
+            <div class="item item-divider">
+                Descripción
+            </div>
+            <div class="list">
+                <div class="item item-icon-left" href="#">
+                    <i class="icon ion-ios-paw"></i>
+                    Raza
+                    <span class="item-note">
+                        {{cards[pub-1].breed}}
+                    </span>
+                </div>
+                <div class="item item-icon-left" href="#">
+                    <i class="icon ion-information-circled"></i>
+                    Descripción
+                    <span class="item-note">
+                         {{cards[pub-1].description}}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="item item-divider">
+            Localización
+        </div>
+        <div id="map" data-tap-disabled="true"></div>
+        <div class="item item-divider">
+            Contacto
+        </div>
+        <div class="reporter-info">
+            <a class="item item-avatar" href="#/app/myprofile" ng-click="closePub()">
+              <img src="{{cards[pub-1].userPhoto}}">
+              <h2>{{cards[pub-1].reporter}}</h2>
+              <p>Cuidador en proceso</p>
+            </a>
+        </div>
+        <div class="button-bar bar-positive">
+            <a class="button">¡Adóptame!</a>
+        </div>
+    </ion-content>
+</ion-modal-view>
