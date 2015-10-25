@@ -46,7 +46,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'starter
       views: {
         'menuContent': {
           templateUrl: 'templates/publish.html',
-          controller: "CamCtrl"
+          controller: "PublishCtrl"
         }
       }
     })

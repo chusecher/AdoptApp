@@ -36,5 +36,7 @@ angular.module('starter.services', [])
 })
 .factory('appDB', function() {
     var db = new PouchDB('adoptappdb');
+    var remoteCouch = 'https://adoptapp.smileupps.com/adoptappdb';
+    PouchDB.sync('adoptappdb', remoteCouch, {live: true});
     return db;
 });
