@@ -166,7 +166,7 @@ angular.module('starter.controllers', ['starter.services'])
 
   // take picture
   $scope.takePicture = function() {
-    //console.log("got camera button click");
+    console.log("got camera button click");
     var options =   {
       quality: 50,
       destinationType: destinationType,
@@ -174,14 +174,13 @@ angular.module('starter.controllers', ['starter.services'])
       encodingType: 0,
       saveToPhotoAlbum: true
       };
-    if (!navigator.camera)
-      {
-      // error handling
-      return;
+    if (!navigator.camera){
+        console.log("error de camera, no hay camara");
+        return;
       }
     navigator.camera.getPicture(
       function (imageURI) {
-        //console.log("got camera success ", imageURI);
+        console.log("got camera success ", imageURI);
         $scope.mypicture = imageURI;
         },
       function (err) {
