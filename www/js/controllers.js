@@ -118,9 +118,11 @@ angular.module('starter.controllers', ['starter.services'])
   $scope.createPub = function(reporter, breed, size, description, name){
     console.log('Creating register', reporter, breed, size, description, name);
     var id = new Date();
+    var exp = new Date(id);
+    exp.setDate(id.getDate()+30)
     var publication= {
       _id: id.toISOString(),
-      expirationDate: new Date().setDate(id.getDate()+30),
+      expirationDate: exp.toISOString(),
       reporter: reporter,
       adopter: [],
       description: description,
@@ -132,10 +134,10 @@ angular.module('starter.controllers', ['starter.services'])
     }
     appDB.put(publication, function callback(err, result) {
       if (!err) {
-        console.log('Successfully posted!');
+        console.log('Successfully posted!', publication.expirationDate);
       }
     });
-    console.log('Successfully posted!', appDB.allDocs({include_docs: true}));
+    console.log('Successfully posted!', appDB.get(publication._id)["state"]);
   }
   //----------------------CAMERA---------------------
   // init variables
