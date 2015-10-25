@@ -1,6 +1,6 @@
-angular.module('starter.controllers', [])
+angular.module('starter.controllers', ['starter.services'])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, appDB) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -8,6 +8,20 @@ angular.module('starter.controllers', [])
   // listen for the $ionicView.enter event:
   //$scope.$on('$ionicView.enter', function(e) {
   //});
+              //POUCHDB -------------
+  $scope.online = false;
+    $scope.toggleOnline = function() {
+      $scope.online = !$scope.online;
+      if ($scope.online) {  // Read http://pouchdb.com/api.html#sync
+        $scope.sync = appDB.sync('adoptapp.iriscouch.com/adoptappdb', {live: true})
+          .on('error', function (err) {
+            console.log("Syncing stopped");
+            console.log(err);
+          });
+      } else {
+        $scope.sync.cancel();
+      }
+    };
 
   // Form data for the login modal
   $scope.loginData = {};

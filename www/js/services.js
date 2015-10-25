@@ -8,4 +8,8 @@ angular.module('starter.services', [])
 		return uploadurl;
 		}
 	}
+})
+.factory('appDB', function() {
+    var db = new PouchDB('adoptappdb');
+    return db;
 });
