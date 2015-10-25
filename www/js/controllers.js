@@ -13,7 +13,7 @@ angular.module('starter.controllers', ['starter.services'])
     $scope.toggleOnline = function() {
       $scope.online = !$scope.online;
       if ($scope.online) {  // Read http://pouchdb.com/api.html#sync
-        $scope.sync = appDB.sync('adoptapp.iriscouch.com/adoptappdb', {live: true})
+        $scope.sync = appDB.sync('adoptapp.smileupps.com/adoptappdb', {live: true})
           .on('error', function (err) {
             console.log("Syncing stopped");
             console.log(err);
@@ -124,8 +124,35 @@ angular.module('starter.controllers', ['starter.services'])
   };
 })
 
-.controller('CamCtrl', function($scope, $location, GetUU) {
+.controller('PublishCtrl', function($scope, $location, GetUU, appDB) {
 
+  $scope.pub={
+    size: 2
+  }
+
+  $scope.createPub = function(reporter, breed, size, description, name){
+    console.log('Creating register', reporter, breed, size, description, name);
+    var id = new Date();
+    var publication= {
+      _id: id.toISOString(),
+      expirationDate: new Date().setDate(id.getDate()+30),
+      reporter: reporter,
+      adopter: [],
+      description: description,
+      size: size,
+      breed: breed,
+      name: name,
+      state: 'ACTIVE',
+      type: 'animal'
+    }
+    appDB.put(publication, function callback(err, result) {
+      if (!err) {
+        console.log('Successfully posted!');
+      }
+    });
+    console.log('Successfully posted!', appDB.allDocs({include_docs: true}));
+  }
+  //----------------------CAMERA---------------------
   // init variables
   $scope.data = {};
   $scope.obj;
