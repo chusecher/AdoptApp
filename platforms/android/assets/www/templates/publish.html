@@ -1,10 +1,10 @@
-<ion-view view-title="Publicar">
+<ion-view view-title="Información de Mascota">
   <ion-content>
     <div class="list">
-    	<div class="item item-divider">
-            Información de Mascota
+        <div class="item item-divider">
+            Imagen
         </div>
-        <div class="item">
+        <!--<div class="item">
         	Foto
         	<item class="item item-icon-left"><i class="icon ion-chatbubble-working"></i>
 			<label class="item item-input">
@@ -14,8 +14,21 @@
 				<button class="button button-block button-positive icon-left ion-ios7-camera" ng-click="takePicture()">Camera</button>
 			</div>
 			<div class="padding">
-				<button class="button button-block button-positive icon-right ion-chevron-right" ng-disabled="!imp.text" ng-click="update(obj)">Upload</button>
+				<button class="button button-block button-positive icon-right ion-chevron-right" ng-click="update(obj)">Upload</button>
 			</div>
+        </div>-->
+        <div class=" padding button-bar">
+            <button class="button button-positive" ng-click="takePicture()">
+                <i class="icon ion-aperture"> Camera
+                </i>
+            </button>
+            <button class="button button-positive" ng-click="update(obj)">
+                <i class="icon ion-upload"> Upload
+                </i>
+            </button>
+        </div>
+        <div class="item item-divider">
+            Imagen
         </div>
     	<label class="item item-input item-floating-label">
     		<i class="icon ion-ios-paw placeholder-icon larger"></i>
@@ -32,6 +45,20 @@
     		<span class="input-label">Descripción</span>
     		<textarea type="text" placeholder="Descripción"></textarea>
     	</label>
+        <div class="item item-divider">
+            Tamaño
+        </div>
+    	<div class="item">
+            <div class="item range">
+                <div class="item-conten padding">
+                    <img src="img/dogBig.jpg" width="15" height="15">
+                </div>
+                <input type="range" name="size" min="1" max="3" value="2">
+                <div class="item-content padding">
+					<img src="img/dogBig.jpg" width="30" height="30">
+				</div>
+            </div>
+		</div>
     </div>
   </ion-content>
 </ion-view>
