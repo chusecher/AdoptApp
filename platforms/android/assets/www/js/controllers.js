@@ -1,6 +1,6 @@
-angular.module('starter.controllers', [])
+angular.module('starter.controllers', ['starter.services'])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, appDB) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -8,37 +8,20 @@ angular.module('starter.controllers', [])
   // listen for the $ionicView.enter event:
   //$scope.$on('$ionicView.enter', function(e) {
   //});
-
-  // Form data for the login modal
-  $scope.loginData = {};
-
-  // Create the login modal that we will use later
-  $ionicModal.fromTemplateUrl('templates/login.html', {
-    scope: $scope
-  }).then(function(modal) {
-    $scope.modal = modal;
-  });
-
-  // Triggered in the login modal to close it
-  $scope.closeLogin = function() {
-    $scope.modal.hide();
-  };
-
-  // Open the login modal
-  $scope.login = function() {
-    $scope.modal.show();
-  };
-
-  // Perform the login action when the user submits the login form
-  $scope.doLogin = function() {
-    console.log('Doing login', $scope.loginData);
-
-    // Simulate a login delay. Remove this and replace with your login
-    // code if using a login system
-    $timeout(function() {
-      $scope.closeLogin();
-    }, 1000);
-  };
+              //POUCHDB -------------
+  $scope.online = false;
+    $scope.toggleOnline = function() {
+      $scope.online = !$scope.online;
+      if ($scope.online) {  // Read http://pouchdb.com/api.html#sync
+        $scope.sync = appDB.sync('adoptapp.smileupps.com/adoptappdb', {live: true})
+          .on('error', function (err) {
+            console.log("Syncing stopped");
+            console.log(err);
+          });
+      } else {
+        $scope.sync.cancel();
+      }
+    };
 })
 
 .controller('PlaylistsCtrl', function($scope) {
@@ -61,6 +44,22 @@ angular.module('starter.controllers', [])
 
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
+
+.controller('LoginCtrl', function($scope) {
+    $scope.data = {};
+
+    $scope.login = function() {
+        LoginService.loginUser($scope.data.username, $scope.data.password).success(function(data) {
+            $state.go('tab.dash');
+        }).error(function(data) {
+            var alertPopup = $ionicPopup.alert({
+                title: 'Login failed!',
+                template: 'Please check your credentials!'
+            });
+        });
+    }
+})
+
 .controller('PubsCtrl', function($scope, $state, $cordovaGeolocation){
   $scope.cards = [
     {id: 1, date: 'Ayer', description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
@@ -110,8 +109,35 @@ angular.module('starter.controllers', [])
   };
 })
 
-.controller('CamCtrl', function($scope, $location, GetUU) {
+.controller('PublishCtrl', function($scope, $location, GetUU, appDB) {
 
+  $scope.pub={
+    size: 2
+  }
+
+  $scope.createPub = function(reporter, breed, size, description, name){
+    console.log('Creating register', reporter, breed, size, description, name);
+    var id = new Date();
+    var publication= {
+      _id: id.toISOString(),
+      expirationDate: new Date().setDate(id.getDate()+30),
+      reporter: reporter,
+      adopter: [],
+      description: description,
+      size: size,
+      breed: breed,
+      name: name,
+      state: 'ACTIVE',
+      type: 'animal'
+    }
+    appDB.put(publication, function callback(err, result) {
+      if (!err) {
+        console.log('Successfully posted!');
+      }
+    });
+    console.log('Successfully posted!', appDB.allDocs({include_docs: true}));
+  }
+  //----------------------CAMERA---------------------
   // init variables
   $scope.data = {};
   $scope.obj;
@@ -140,7 +166,7 @@ angular.module('starter.controllers', [])
 
   // take picture
   $scope.takePicture = function() {
-    //console.log("got camera button click");
+    console.log("got camera button click");
     var options =   {
       quality: 50,
       destinationType: destinationType,
@@ -148,14 +174,13 @@ angular.module('starter.controllers', [])
       encodingType: 0,
       saveToPhotoAlbum: true
       };
-    if (!navigator.camera)
-      {
-      // error handling
-      return;
+    if (!navigator.camera){
+        console.log("error de camera, no hay camara");
+        return;
       }
     navigator.camera.getPicture(
       function (imageURI) {
-        //console.log("got camera success ", imageURI);
+        console.log("got camera success ", imageURI);
         $scope.mypicture = imageURI;
         },
       function (err) {

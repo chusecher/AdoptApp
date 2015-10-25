@@ -4,6 +4,9 @@
         <div class="item item-divider">
             Imagen
         </div>
+        <div class="padding" align="center">
+        	<img src="img/profile_default_pet.jpg" width="60%" height="60%"/>
+        </div>
         <!--<div class="item">
         	Foto
         	<item class="item item-icon-left"><i class="icon ion-chatbubble-working"></i>
@@ -19,31 +22,29 @@
         </div>-->
         <div class=" padding button-bar">
             <button class="button button-positive" ng-click="takePicture()">
-                <i class="icon ion-aperture"> Camera
-                </i>
+                <i class="icon ion-aperture"> Camera</i>
             </button>
             <button class="button button-positive" ng-click="update(obj)">
-                <i class="icon ion-upload"> Upload
-                </i>
+                <i class="icon ion-upload"> Upload</i>
             </button>
         </div>
         <div class="item item-divider">
-            Imagen
+            Información de Mascota
         </div>
     	<label class="item item-input item-floating-label">
     		<i class="icon ion-ios-paw placeholder-icon larger"></i>
     		<span class="input-label">Raza</span>
-    		<input type="text" placeholder="Raza">
+    		<input type="text" placeholder="Raza" ng-model="pub.breed">
     	</label>
     	<label class="item item-input item-floating-label">
     		<i class="icon ion-card placeholder-icon larger"></i>
     		<span class="input-label">Nombre</span>
-    		<input type="text" placeholder="Nombre">
+    		<input type="text" placeholder="Nombre" ng-model="pub.name">
     	</label>
     	<label class="item item-input item-floating-label">
     		<i class="icon ion-information-circled placeholder-icon larger"></i>
     		<span class="input-label">Descripción</span>
-    		<textarea type="text" placeholder="Descripción"></textarea>
+    		<textarea type="text" placeholder="Descripción" ng-model="pub.description"></textarea>
     	</label>
         <div class="item item-divider">
             Tamaño
@@ -53,12 +54,15 @@
                 <div class="item-conten padding">
                     <img src="img/dogBig.jpg" width="15" height="15">
                 </div>
-                <input type="range" name="size" min="1" max="3" value="2">
+                <input type="range" name="size" min="1" max="3" value="{{pub.size}}" ng-model="pub.size">
                 <div class="item-content padding">
 					<img src="img/dogBig.jpg" width="30" height="30">
 				</div>
             </div>
 		</div>
+		<div class="button-bar bar-positive">
+            <a class="button" ng-click="createPub('Reportero de prueba', pub.breed, pub.size, pub.description, pub.name)">Publicar</a>
+        </div>
     </div>
   </ion-content>
 </ion-view>
