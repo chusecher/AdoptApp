@@ -60,7 +60,14 @@ angular.module('starter.controllers', ['starter.services'])
     }
 })
 
-.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation){
+.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB){
+  appDB.initDB();
+  var vm = this;
+  appDB.getPublications().then(function(docs) {
+      vm.docs = docs;
+    });
+  console.log('Docuements: ', typeof(vm.docs));
+  
   $scope.cards = [
     {id: 1, date: 'Ayer'            , description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
     {id: 2, date: '10 de Octubre'   , description:'Una mamá pincher dió a luz a cachorritos y están todos disponibles para adopción.', breed: 'Pincher', photo: 'img/pincher1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
@@ -68,6 +75,19 @@ angular.module('starter.controllers', ['starter.services'])
     {id: 4, date: '29 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'img/perro.jpg', reporter: 'Pepito1'},
     {id: 5, date: '15 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'img/perro.jpg', reporter: 'Pepito1'}
   ];
+/*
+  var publication = {
+      _id: id.toISOString(),
+      expirationDate: exp.toISOString(),
+      reporter: reporter,
+      adopter: [],
+      description: description,
+      size: size,
+      breed: breed,
+      name: name,
+      state: 'ACTIVE',
+      type: 'animal'
+  }*/
 })
 
 .controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation) {
@@ -110,7 +130,7 @@ angular.module('starter.controllers', ['starter.services'])
 })
 
 .controller('PublishCtrl', function($scope, $location, GetUU, appDB) {
-
+  appDB.initDB();
   $scope.pub={
     size: 2
   }
@@ -132,12 +152,7 @@ angular.module('starter.controllers', ['starter.services'])
       state: 'ACTIVE',
       type: 'animal'
     }
-    appDB.put(publication, function callback(err, result) {
-      if (!err) {
-        console.log('Successfully posted!', publication.expirationDate);
-      }
-    });
-    console.log('Successfully posted!', appDB.get(publication._id)["state"]);
+    appDB.addPublication(publication);
   }
   //----------------------CAMERA---------------------
   // init variables
