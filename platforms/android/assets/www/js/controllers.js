@@ -45,7 +45,8 @@ angular.module('starter.controllers', ['starter.services'])
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
 
-.controller('LoginCtrl', function($scope) {
+.controller('LoginCtrl', function($scope,LoginService,$ionicPopup) {
+
     $scope.data = {};
 
     $scope.login = function() {
@@ -60,67 +61,29 @@ angular.module('starter.controllers', ['starter.services'])
     }
 })
 
-.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation){
+.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB){
+  $scope.docs;
+
+  
+  appDB.initDB();
+  pubs = appDB.getPublications();
+  pubs.then(function(docs) {
+      $scope.docs = docs;
+  });
+
+
+  
   $scope.cards = [
-    {id: 1, date: 'Ayer', description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
-    {id: 2, date: '10 de Octubre', description:'Una mamá pincher dió a luz a cachorritos y están todos disponibles para adopción.', breed: 'Pincher', photo: 'img/pincher1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
+    {id: 1, date: 'Ayer'            , description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
+    {id: 2, date: '10 de Octubre'   , description:'Una mamá pincher dió a luz a cachorritos y están todos disponibles para adopción.', breed: 'Pincher', photo: 'img/pincher1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
     {id: 3, date: '30 de Septiembre', description:'Ya no tengo los medios para mantener a mi gato. Si alguien lo quiere cuidar.', breed: 'Snowshoe', photo: 'img/snowshoe1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
     {id: 4, date: '29 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'img/perro.jpg', reporter: 'Pepito1'},
     {id: 5, date: '15 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'img/perro.jpg', reporter: 'Pepito1'}
   ];
-})
-
-.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation) {
-  var options = {timeout: 10000, enableHighAccuracy: true};
-  $cordovaGeolocation.getCurrentPosition(options).then(function(position){
-
-    $scope.latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-
-    $scope.mapOptions = {
-      center: $scope.latLng,
-      zoom: 15,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    };
-
-    //$scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
-
-  }, function(error){
-    console.log("Could not get location");
-  });
-
-  $ionicModal.fromTemplateUrl('templates/publication.html', {
-    scope: $scope,
-    animation: 'slide-in-up'
-  }).then(function(modal){
-    $scope.modal = modal;
-  });
-
-  $scope.closePub = function() {
-    $scope.modal.hide();
-  };
-
-  // Open the publication modal details window
-
-  $scope.openPub = function($pubId) {
-    $scope.pub = $pubId;
-    $scope.modal.show();
-    $scope.map = new google.maps.Map(document.getElementById("map"), $scope.mapOptions);
-
-  };
-})
-
-.controller('PublishCtrl', function($scope, $location, GetUU, appDB) {
-
-  $scope.pub={
-    size: 2
-  }
-
-  $scope.createPub = function(reporter, breed, size, description, name){
-    console.log('Creating register', reporter, breed, size, description, name);
-    var id = new Date();
-    var publication= {
+/*
+  var publication = {
       _id: id.toISOString(),
-      expirationDate: new Date().setDate(id.getDate()+30),
+      expirationDate: exp.toISOString(),
       reporter: reporter,
       adopter: [],
       description: description,
@@ -129,13 +92,87 @@ angular.module('starter.controllers', ['starter.services'])
       name: name,
       state: 'ACTIVE',
       type: 'animal'
-    }
-    appDB.put(publication, function callback(err, result) {
-      if (!err) {
-        console.log('Successfully posted!');
-      }
+  }*/
+})
+
+.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB) {
+
+	$ionicModal.fromTemplateUrl('templates/publication.html', {
+		scope: $scope,
+		animation: 'slide-in-up'
+	}).then(function(modal){
+		$scope.modal = modal;
+	});
+
+  $scope.closePub = function() {
+    $scope.modal.hide();
+    $scope.modal.remove();
+	$ionicModal.fromTemplateUrl('templates/publication.html', {
+		scope: $scope,
+		animation: 'slide-in-up'
+	}).then(function(modal){
+		$scope.modal = modal;
+	});
+  };
+
+  // Open the publication modal details window
+
+  $scope.openPub = function(pubId) {
+    appDB.getPublication(pubId).then(function(pub){
+    	$scope.pub = pub;
+    	$scope.latLng = new google.maps.LatLng($scope.pub.location.lat, $scope.pub.location.lng);
+
+		$scope.mapOptions = {
+			center: $scope.latLng,
+			zoom: 15,
+			mapTypeId: google.maps.MapTypeId.ROADMAP
+		};
+		$scope.modal.show();
+    	$scope.map = new google.maps.Map(document.getElementById("map"), $scope.mapOptions);
+    	$scope.flag = new google.maps.InfoWindow({map: $scope.map});
+    	$scope.flag.setPosition($scope.pub.location);
+    	$scope.flag.setContent('Ubicación aproximada');
+    
     });
-    console.log('Successfully posted!', appDB.allDocs({include_docs: true}));
+    
+
+  };
+})
+
+.controller('PublishCtrl', function($scope, $location, $cordovaGeolocation, GetUU, appDB) {
+  appDB.initDB();
+  $scope.pub={
+    size: 2
+  }
+
+  var options = {timeout: 10000, enableHighAccuracy: true};
+  $cordovaGeolocation.getCurrentPosition(options).then(function(position){
+
+	$scope.pub.pos = {lat: position.coords.latitude, lng: position.coords.longitude};
+
+  }, function(error){
+		console.log("Could not get location");
+  });
+  $scope.createPub = function(reporter, breed, size, description, name, pos){
+  	console.log('Creating register', reporter, breed, size, description, name, pos);
+    var id = new Date();
+    id.setHours(id.getHours()-5);
+    var exp = new Date(id);
+    exp.setDate(id.getDate()+30)
+    var publication= {
+      _id: id.toISOString(),
+      expirationDate: exp.toISOString(),
+      reporter: reporter,
+      adopter: [],
+      description: description,
+      size: size,
+      breed: breed,
+      name: name,
+      state: 'ACTIVE',
+      type: 'animal',
+      location: pos
+    }
+    appDB.addPublication(publication);
   }
   //----------------------CAMERA---------------------
   // init variables

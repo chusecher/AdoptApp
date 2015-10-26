@@ -1,6 +1,6 @@
 <ion-modal-view>
     <ion-header-bar class="bar-stable">
-        <h1 class="title">Publicación {{pub}}</h1>
+        <h1 class="title">Publicación "'{{pub._id}}'"</h1>
         <div class="buttons">
             <button class="button button-clear" ng-click="closePub()">Salir</button>
         </div>
@@ -9,11 +9,11 @@
         <div class="list">
             <div class="item item-divider">
                 <p align="center">
-                    {{cards[pub-1].date}}
+                    {{pub._id}}
                 </p>
             </div>
             <div class="photo">
-                <img src="{{cards[pub-1].photo}}" width="100%" height="100%"/>
+                <img src="{{cards[0].photo}}" width="100%" height="100%"/>
             </div>
             <div class="item item-divider">
                 Descripción
@@ -23,14 +23,14 @@
                     <i class="icon ion-ios-paw"></i>
                     Raza
                     <span class="item-note">
-                        {{cards[pub-1].breed}}
+                        {{pub.breed}}
                     </span>
                 </div>
                 <div class="item item-icon-left" href="#">
                     <i class="icon ion-information-circled"></i>
                     Descripción
                     <span class="item-note">
-                         {{cards[pub-1].description}}
+                         {{pub.description}}
                     </span>
                 </div>
             </div>
@@ -44,8 +44,8 @@
         </div>
         <div class="reporter-info">
             <a class="item item-avatar" href="#/app/myprofile" ng-click="closePub()">
-              <img src="{{cards[pub-1].userPhoto}}">
-              <h2>{{cards[pub-1].reporter}}</h2>
+              <img src="{{cards[0].userPhoto}}">
+              <h2>{{pub.reporter}}</h2>
               <p>Cuidador en proceso</p>
             </a>
         </div>

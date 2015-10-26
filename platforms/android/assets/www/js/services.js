@@ -34,9 +34,84 @@ angular.module('starter.services', [])
         }
     }
 })
-.factory('appDB', function() {
-    var db = new PouchDB('adoptappdb');
-    var remoteCouch = 'https://adoptapp.smileupps.com/adoptappdb';
-    PouchDB.sync('adoptappdb', remoteCouch, {live: true});
-    return db;
-});
+.factory('appDB', ['$q', dbService]);
+
+function dbService($q){
+    var db;
+    var remoteCouch;
+    var publications;
+
+    return{
+    	initDB: initDB,
+    	getPublications: getPublications,
+    	addPublication: addPublication,
+        getPublication: getPublication
+    };
+
+    function initDB(){
+        localdb = new PouchDB('adoptappdb');
+    	remoteCouch = 'https://adoptapp.smileupps.com/adoptappdb';
+        db = new PouchDB(remoteCouch);
+    	PouchDB.sync(localdb, db, {live: true});
+    };
+
+    function getPublications(){
+    	if(!publications){
+    		return $q.when(db.allDocs({include_docs: true, descending: true}))
+    			.then(function(docs){
+    				publications = docs.rows.map(function(row){
+    					row.doc._id = new Date(row.doc._id);
+      					row.doc.expirationDate = new Date(row.doc.expirationDate);
+
+      					return row.doc;
+    				});
+
+    				db.changes({live: true, since: 'now', include_docs: true})
+    					.on('change', onDatabaseChange);
+
+    				return publications;
+    			});
+    	}else{
+    		return $q.when(publications);
+    	}
+
+    };
+
+    function addPublication(publication){
+    	return $q.when(db.put(publication, function callback(err, result) {
+      		if (!err) {
+       			console.log('Successfully posted!');
+      		}
+    	}));
+    }
+
+    function getPublication(publicationID){
+        return db.get(publicationID).then(function (doc) {
+            return doc;
+        });
+    }
+    function onDatabaseChange(change) {  
+	    var index = findIndex(publications, change.id);
+	    var publication = publications[index];
+
+	    if (change.deleted) {
+	        if (publication) {
+	            publications.splice(index, 1); // delete
+	        }
+	    } else {
+	        if (publication && publication._id === change.id) {
+	            publications[index] = change.doc; // update
+	        } else {
+	            publications.splice(index, 0, change.doc); // insert
+	        }
+	    }
+	};
+	function findIndex(array, id) {  
+	    var low = 0, high = array.length, mid;
+	    while (low < high) {
+		    mid = (low + high) >>> 1;
+		    array[mid]._id < id ? low = mid + 1 : high = mid
+	    }
+	    return low;
+	}
+};
