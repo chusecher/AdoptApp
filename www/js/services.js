@@ -44,18 +44,20 @@ function dbService($q){
     return{
     	initDB: initDB,
     	getPublications: getPublications,
-    	addPublication: addPublication
+    	addPublication: addPublication,
+        getPublication: getPublication
     };
 
     function initDB(){
-    	db = new PouchDB('adoptappdb');
+        localdb = new PouchDB('adoptappdb');
     	remoteCouch = 'https://adoptapp.smileupps.com/adoptappdb';
-    	PouchDB.sync('adoptappdb', remoteCouch, {live: true});
+        db = new PouchDB(remoteCouch);
+    	PouchDB.sync(localdb, db, {live: true});
     };
 
     function getPublications(){
     	if(!publications){
-    		return $q.when(db.allDocs({include_docs: true}))
+    		return $q.when(db.allDocs({include_docs: true, descending: true}))
     			.then(function(docs){
     				publications = docs.rows.map(function(row){
     					row.doc._id = new Date(row.doc._id);
@@ -66,6 +68,7 @@ function dbService($q){
 
     				db.changes({live: true, since: 'now', include_docs: true})
     					.on('change', onDatabaseChange);
+
     				return publications;
     			});
     	}else{
@@ -80,6 +83,12 @@ function dbService($q){
        			console.log('Successfully posted!');
       		}
     	}));
+    }
+
+    function getPublication(publicationID){
+        return db.get(publicationID).then(function (doc) {
+            return doc;
+        });
     }
     function onDatabaseChange(change) {  
 	    var index = findIndex(publications, change.id);
