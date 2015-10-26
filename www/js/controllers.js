@@ -45,7 +45,8 @@ angular.module('starter.controllers', ['starter.services'])
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
 
-.controller('LoginCtrl', function($scope) {
+.controller('LoginCtrl', function($scope,LoginService,$ionicPopup) {
+
     $scope.data = {};
 
     $scope.login = function() {
