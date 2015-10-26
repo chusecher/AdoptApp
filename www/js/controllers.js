@@ -156,6 +156,7 @@ angular.module('starter.controllers', ['starter.services'])
   $scope.createPub = function(reporter, breed, size, description, name, pos){
   	console.log('Creating register', reporter, breed, size, description, name, pos);
     var id = new Date();
+    id.setHours(id.getHours()-5);
     var exp = new Date(id);
     exp.setDate(id.getDate()+30)
     var publication= {
