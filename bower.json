@@ -5,6 +5,9 @@
     "ionic": "driftyco/ionic-bower#1.1.0"
   },
   "dependencies": {
-    "pouchdb": "~5.0.0"
+    "pouchdb": "~5.0.0",
+    "auth0-angular": "4.*",
+    "a0-angular-storage": ">= 0.0.12",
+    "angular-jwt": ">= 0.0.9"
   }
 }

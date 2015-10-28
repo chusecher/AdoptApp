@@ -82,6 +82,14 @@ module.exports = [
         "clobbers": [
             "CameraPopoverHandle"
         ]
+    },
+    {
+        "file": "plugins/cordova-plugin-inappbrowser/www/inappbrowser.js",
+        "id": "cordova-plugin-inappbrowser.inappbrowser",
+        "clobbers": [
+            "cordova.InAppBrowser.open",
+            "window.open"
+        ]
     }
 ];
 module.exports.metadata = 
@@ -95,7 +103,8 @@ module.exports.metadata =
     "ionic-plugin-keyboard": "1.0.7",
     "io.litehelpers.cordova.sqliteStorage": "0.7.5",
     "org.apache.cordova.geolocation": "0.3.12",
-    "cordova-plugin-camera": "1.2.0"
+    "cordova-plugin-camera": "1.2.0",
+    "cordova-plugin-inappbrowser": "1.0.1"
 }
 // BOTTOM OF METADATA
 });

@@ -9,9 +9,9 @@ angular.module('starter.services', [])
             var promise = deferred.promise;
 
             if (name == 'user' && pw == 'secret') {
-                deferred.resolve('Welcome ' + name + '!');
+                deferred.resolve('¡Bienvenido ' + name + '!');
             } else {
-                deferred.reject('Wrong credentials.');
+                deferred.reject('Datos incorrectos');
             }
             promise.success = function(fn) {
                 promise.then(fn);
@@ -34,6 +34,7 @@ angular.module('starter.services', [])
         }
     }
 })
+
 .factory('appDB', ['$q', dbService]);
 
 function dbService($q){
@@ -45,23 +46,75 @@ function dbService($q){
     	initDB: initDB,
     	getPublications: getPublications,
     	addPublication: addPublication,
-        getPublication: getPublication
+        getPublication: getPublication,
+        getUser: getUser,
+        addUser: addUser
     };
 
     function initDB(){
         localdb = new PouchDB('adoptappdb');
     	remoteCouch = 'https://adoptapp.smileupps.com/adoptappdb';
         db = new PouchDB(remoteCouch);
-    	PouchDB.sync(localdb, db, {live: true});
+
+
+        var typeIndex = {
+            _id: '_design/type_index',
+            views: {
+                animal: {
+                    map: function (doc) {
+                        if (doc.type == 'animal')
+                            emit(doc.type, doc);
+                    }.toString()
+                },
+                user: {
+                    map: function (doc) {
+                        if (doc.type == 'user')
+                            emit(doc.type, doc);
+                    }.toString()
+                },
+            }
+        };
+
+        db.put(typeIndex).then(function(){
+            console.log('Indice agregado');
+        }).catch(function(err){})
+
+        PouchDB.sync(localdb, db, {live: true});
+
+        db.query('type_index/animal', {limit: 0}).then(function (res) {
+            // index was built!
+        }).catch(function (err) {
+            // some error
+        });
+
     };
 
     function getPublications(){
+        console.log('Obteniendo Publicaciones')
     	if(!publications){
+            return $q.when(db.query('type_index/animal', {descending: true}).then(function(docs){
+                publications = docs.rows.map(function(row){
+                    row.value._id = new Date(row.value._id);
+                    row.value.expirationDate = new Date(row.value.expirationDate);
+
+                    console.log(row.value.type);
+
+                    return row.value;
+                });
+
+                db.changes({live: true, since: 'now', include_docs: true})
+                    .on('change', onDatabaseChange);
+
+                return publications;
+                }));
+            /*
     		return $q.when(db.allDocs({include_docs: true, descending: true}))
     			.then(function(docs){
     				publications = docs.rows.map(function(row){
     					row.doc._id = new Date(row.doc._id);
       					row.doc.expirationDate = new Date(row.doc.expirationDate);
+
+                        console.log(row.doc.type);
 
       					return row.doc;
     				});
@@ -71,6 +124,7 @@ function dbService($q){
 
     				return publications;
     			});
+            */
     	}else{
     		return $q.when(publications);
     	}
@@ -84,13 +138,24 @@ function dbService($q){
       		}
     	}));
     }
-
+    function addUser(user){
+        return $q.when(db.put(user, function callback(err, result){
+            if(!err){
+                console.log('Successfully registered');
+            }
+        }));
+    }
+    function getUser(userID){
+        return db.get(userID).then(function (doc) {
+            return doc;
+        });
+    }
     function getPublication(publicationID){
         return db.get(publicationID).then(function (doc) {
             return doc;
         });
     }
-    function onDatabaseChange(change) {  
+    function onDatabaseChange(change) {
 	    var index = findIndex(publications, change.id);
 	    var publication = publications[index];
 
@@ -106,7 +171,7 @@ function dbService($q){
 	        }
 	    }
 	};
-	function findIndex(array, id) {  
+	function findIndex(array, id) {
 	    var low = 0, high = array.length, mid;
 	    while (low < high) {
 		    mid = (low + high) >>> 1;
