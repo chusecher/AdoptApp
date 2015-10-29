@@ -125,7 +125,7 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
       }
     }
   })
-  
+
   authProvider.init({
       domain:'adoptapp.auth0.com',
       clientID: 'q3bDulYKPPGZnSFeVNcs86QzLOjyPdId',

@@ -36,8 +36,9 @@ angular.module('starter.controllers', ['starter.services'])
   ];
 })
 
-.controller('MyProfileCtrl', function($scope) {
-
+.controller('MyProfileCtrl', function($scope, auth, appDB) {
+    $scope.auth = auth;
+    console.log(JSON.stringify(auth.profile));
 })
 
 .controller('RegisCtrl', function($scope, $ionicPopup, appDB) {
@@ -74,22 +75,24 @@ angular.module('starter.controllers', ['starter.services'])
 
     $scope.data = {};
 
-    $scope.login = function() {
-        auth.signin({
-            authParams:{
-                scope: 'openid offline_access',
-                device: 'Mobile device'
-            }
-        }, function(profile, token, accessToken, state, refreshToken){
-            store.set('profile', profile);
-            store.set('token', token);
-            store.set('refreshToken', refreshToken);
-            $location.path('/');
-            $state.go('app.news')
-        }, function(){
-            //error
-        });
-    }
+//    $scope.login = function() {
+    auth.signin({
+        container: 'hiw-login-container',
+        dict: 'es',
+        authParams:{
+            scope: 'openid offline_access',
+            device: 'Mobile device'
+        }
+    }, function(profile, token, accessToken, state, refreshToken){
+        store.set('profile', profile);
+        store.set('token', token);
+        store.set('refreshToken', refreshToken);
+        $location.path('/');
+        $state.go('app.news')
+    }, function(){
+        //error
+    });
+//    }
 })
 
 .controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB){

@@ -4,9 +4,11 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'starter.services'])
+angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
+                            'auth0', 'angular-storage', 'starter.services', 'angular-jwt'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform, $rootScope, auth, store, jwtHelper, $location) {
+
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -20,16 +22,52 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'starter
       StatusBar.styleDefault();
     }
   });
+  auth.hookEvents();
+  var refreshingToken = null;
+  $rootScope.$on('$locationChangeStart', function() {
+    var token = store.get('token');
+    var refreshToken = store.get('refreshToken');
+    if (token) {
+      if (!jwtHelper.isTokenExpired(token)) {
+        if (!auth.isAuthenticated) {
+          auth.authenticate(store.get('profile'), token);
+        }
+      } else {
+        if (refreshToken) {
+          if (refreshingToken === null) {
+            refreshingToken = auth.refreshIdToken(refreshToken).then(function(idToken) {
+              store.set('token', idToken);
+              auth.authenticate(store.get('profile'), idToken);
+            }).finally(function() {
+              refreshingToken = null;
+            });
+          }
+          return refreshingToken;
+        } else {
+          $location.path('/login');// Notice: this url must be the one defined
+        }                          // in your login state. Refer to step 5.
+      }
+    }
+  });
 })
 
-.config(function($stateProvider, $urlRouterProvider) {
+.config(function($stateProvider, $urlRouterProvider, authProvider, $httpProvider, jwtInterceptorProvider) {
   $stateProvider
+  .state('login', {
+        url: '/login',
+        templateUrl: 'templates/login.html',
+        controller: 'LoginCtrl'
+
+    })
 
   .state('app', {
     url: '/app',
     abstract: true,
     templateUrl: 'templates/menu.html',
-    controller: 'AppCtrl'
+    controller: 'AppCtrl',
+    data:{
+        requiresLogin:true
+    }
   })
 
   .state('app.search', {
@@ -69,17 +107,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'starter
         }
       }
     })
-
-    .state('app.login', {
-          url: '/login',
-          views: {
-            'menuContent': {
-              templateUrl: 'templates/login.html',
-              controller: 'LoginCtrl'
-        }
-      }
-  })
-
   .state('app.single', {
     url: '/playlists/:playlistId',
     views: {
@@ -97,8 +124,34 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'starter
         controller: 'PubsCtrl'
       }
     }
+  })
+
+  authProvider.init({
+      domain:'adoptapp.auth0.com',
+      clientID: 'q3bDulYKPPGZnSFeVNcs86QzLOjyPdId',
+      loginState: 'login'
   });
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/app/news');
+  $urlRouterProvider.otherwise('/login');
+
+  jwtInterceptorProvider.tokenGetter = function(store, jwtHelper, auth) {
+    var idToken = store.get('token');
+    var refreshToken = store.get('refreshToken');
+    // If no token return null
+    if (!idToken || !refreshToken) {
+      return null;
+    }
+    // If token is expired, get a new one
+    if (jwtHelper.isTokenExpired(idToken)) {
+      return auth.refreshIdToken(refreshToken).then(function(idToken) {
+        store.set('token', idToken);
+        return idToken;
+      });
+    } else {
+      return idToken;
+    }
+  }
+
+  $httpProvider.interceptors.push('jwtInterceptor');
 
 });

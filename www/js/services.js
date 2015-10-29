@@ -1,7 +1,7 @@
 angular.module('starter.services', [])
 
 // get upload url for file transfer (upload to http post service)
-
+/*
 .factory('LoginService', function($q) {
     return {
         loginUser: function(name, pw) {
@@ -25,7 +25,7 @@ angular.module('starter.services', [])
         }
     }
 })
-
+*/
 .factory('GetUU', function() {
     var uploadurl = "http://localhost/upl";
     return  {

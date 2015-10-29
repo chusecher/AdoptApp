@@ -9,6 +9,7 @@ angular.module('starter.controllers', ['starter.services'])
   //$scope.$on('$ionicView.enter', function(e) {
   //});
               //POUCHDB -------------
+  appDB.initDB();
   $scope.online = false;
     $scope.toggleOnline = function() {
       $scope.online = !$scope.online;
@@ -39,24 +40,55 @@ angular.module('starter.controllers', ['starter.services'])
 
 })
 
-.controller('RegisCtrl', function($scope) {
+.controller('RegisCtrl', function($scope, $ionicPopup, appDB) {
+  appDB.initDB();
+  $scope.user = {};
+  $scope.createUser = function(email, name, lastname, phone, password){
+    var user = {
+      _id: email,
+      name: name,
+      lastname: lastname,
+      phone: phone,
+      password: password,
+      type: 'user'
+    }
+    appDB.addUser(user).then(function(){
+      var alertPopup = $ionicPopup.alert({
+          title: '¡Registro Exitoso!',
+          template: 'Te has con éxito'
+      });
+    }, function(err){
+      var alertPopup = $ionicPopup.alert({
+          title: 'Registro Fallido',
+          template: 'Ha ocurrido un problema con tu registro'
+      });
+    });
+
+  }
 })
 
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
 
-.controller('LoginCtrl', function($scope,LoginService,$ionicPopup) {
+.controller('LoginCtrl', function($scope,$location, store, auth, $state) {
 
     $scope.data = {};
 
     $scope.login = function() {
-        LoginService.loginUser($scope.data.username, $scope.data.password).success(function(data) {
-            $state.go('tab.dash');
-        }).error(function(data) {
-            var alertPopup = $ionicPopup.alert({
-                title: 'Login failed!',
-                template: 'Please check your credentials!'
-            });
+        auth.signin({
+            dict: 'es',
+            authParams:{
+                scope: 'openid offline_access',
+                device: 'Mobile device'
+            }
+        }, function(profile, token, accessToken, state, refreshToken){
+            store.set('profile', profile);
+            store.set('token', token);
+            store.set('refreshToken', refreshToken);
+            $location.path('/');
+            $state.go('app.news')
+        }, function(){
+            //error
         });
     }
 })
@@ -64,7 +96,7 @@ angular.module('starter.controllers', ['starter.services'])
 .controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB){
   $scope.docs;
 
-  
+
   appDB.initDB();
   pubs = appDB.getPublications();
   pubs.then(function(docs) {
@@ -72,7 +104,7 @@ angular.module('starter.controllers', ['starter.services'])
   });
 
 
-  
+
   $scope.cards = [
     {id: 1, date: 'Ayer'            , description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
     {id: 2, date: '10 de Octubre'   , description:'Una mamá pincher dió a luz a cachorritos y están todos disponibles para adopción.', breed: 'Pincher', photo: 'img/pincher1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
@@ -132,14 +164,14 @@ angular.module('starter.controllers', ['starter.services'])
     	$scope.flag = new google.maps.InfoWindow({map: $scope.map});
     	$scope.flag.setPosition($scope.pub.location);
     	$scope.flag.setContent('Ubicación aproximada');
-    
+
     });
-    
+
 
   };
 })
 
-.controller('PublishCtrl', function($scope, $location, $cordovaGeolocation, GetUU, appDB) {
+.controller('PublishCtrl', function($scope, $location, $cordovaGeolocation, $ionicPopup, GetUU, appDB) {
   appDB.initDB();
   $scope.pub={
     size: 2
@@ -172,7 +204,17 @@ angular.module('starter.controllers', ['starter.services'])
       type: 'animal',
       location: pos
     }
-    appDB.addPublication(publication);
+    appDB.addPublication(publication).then(function(){
+        var alertPopup = $ionicPopup.alert({
+          title: '¡Publicación Exitosa!',
+          template: '´Tu publicación ha sido registrada con éxito'
+        });
+      }, function(err){
+        var alertPopup = $ionicPopup.alert({
+          title: 'Publicación Fallida',
+          template: 'Ha ocurrido un problema'
+        });
+      });
   }
   //----------------------CAMERA---------------------
   // init variables

@@ -1,29 +1,29 @@
-<ion-view view-title="My Profile">
+<ion-view view-title="Mi Perfil">
     <ion-content>
         <!--<div class="bar bar-header bar-balanced">
             <h1 class="title">mi-nombre</h1>
         </div>-->
         <a class="item item-avatar" href="#">
-            <img src="img/test-photo.jpg">
-                <h2>Mateo Nieto</h2>
-            <p>Best Shen LAN</p>
+            <img src="{{auth.profile.picture}}">
+                <h2>{{auth.profile.name}}</h2>
+            <p>{{auth.profile.nickname}}</p>
         </a>
         <div class="item item-divider">
-            Personal Info
+            Datos personales
         </div>
         <div class="list">
             <div class="item item-icon-left" href="#">
                 <i class="icon ion-ios-paw"></i>
-                Username
+                Nombre de usuario
                 <span class="item-note">
-                    mr-mashu
+                    {{auth.profile.username}}
                 </span>
             </div>
             <div class="item item-icon-left" href="#">
                 <i class="icon ion-email"></i>
-                Email
+                e-mail
                 <span class="item-note">
-                    mateonietod@gmail.com
+                    {{auth.profile.email}}
                 </span>
             </div>
             <div class="item item-icon-left item-icon-right" href="#">
