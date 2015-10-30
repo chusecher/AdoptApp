@@ -47,6 +47,8 @@ function authService($q, $http){
         .then(function(response){
             console.log("Successfull response", JSON.stringify(response));
             return response;
+        }).catch(function(err){
+            console.log(JSON.stringify(err));
         }))
     }
 }
