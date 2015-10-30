@@ -35,7 +35,21 @@ angular.module('starter.services', [])
     }
 })
 
-.factory('appDB', ['$q', dbService]);
+.factory('appDB', ['$q', dbService])
+.factory('authService', ['$q', '$http', 'auth', authService]);
+
+function authService($q, $http){
+    return{
+        callUser: callUser,
+    }
+    function callUser(userId){
+        return $q.when($http.get('https://adoptapp.auth0.com/api/v2/users/'+userId)
+        .then(function(response){
+            console.log("Successfull response");
+            return response;
+        }))
+    }
+}
 
 function dbService($q){
     var db;
@@ -97,8 +111,6 @@ function dbService($q){
                     row.value._id = new Date(row.value._id);
                     row.value.expirationDate = new Date(row.value.expirationDate);
 
-                    console.log(row.value.type);
-
                     return row.value;
                 });
 
@@ -146,7 +158,9 @@ function dbService($q){
         }));
     }
     function getUser(userID){
-        return db.get(userID).then(function (doc) {
+        return db.get(userID).catch(function (err) {
+            return err;
+        }).then(function(doc){
             return doc;
         });
     }

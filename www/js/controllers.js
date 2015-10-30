@@ -37,11 +37,16 @@ angular.module('starter.controllers', ['starter.services'])
 })
 
 .controller('MyProfileCtrl', function($scope, auth, appDB) {
+    appDB.initDB();
+    $scope.activeUser;
     $scope.auth = auth;
-    console.log(JSON.stringify(auth.profile));
+
+    appDB.getUser(auth.profile.user_id).then(function(user){
+        $scope.activeUser = user;
+    });
 })
 
-.controller('RegisCtrl', function($scope, $ionicPopup, appDB) {
+.controller('RegisCtrl', function($scope, $ionicPopup, appDB, $http) {
   appDB.initDB();
   $scope.user = {};
   $scope.createUser = function(email, name, lastname, phone, password){
@@ -71,8 +76,8 @@ angular.module('starter.controllers', ['starter.services'])
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
 
-.controller('LoginCtrl', function($scope,$location, store, auth, $state) {
-
+.controller('LoginCtrl', function($scope, $location, $ionicPopup, store, auth, $state, appDB, authService) {
+    appDB.initDB();
     $scope.data = {};
 
 //    $scope.login = function() {
@@ -87,8 +92,43 @@ angular.module('starter.controllers', ['starter.services'])
         store.set('profile', profile);
         store.set('token', token);
         store.set('refreshToken', refreshToken);
-        $location.path('/');
-        $state.go('app.news')
+
+        appDB.getUser(auth.profile.user_id).then(function(doc){
+            console.log(JSON.stringify(doc));
+            if(doc.status === 404){
+                console.log("Usuario nuevo");
+                var user = {
+                    _id : auth.profile.user_id,
+                    phone: '',
+                    rating: 0,
+                    type: 'user',
+                    status: 'OK'
+                }
+                appDB.addUser(user).then(function(){
+                    var alertPopup = $ionicPopup.alert({
+                        title: '¡Registro Exitoso!',
+                        template: 'Por favor edita tus datos en tu perfil'
+                    });
+                    $location.path('/');
+                    $state.go('app.myprofile');
+                });
+            }else if (doc.status === "OK") {
+                console.log("Login", 'Usuario registrado', JSON.stringify(doc));
+                authService.callUser(auth.profile.user_id).then(function(user){
+                    $scope.data = user.data;
+                    var alertPopup = $ionicPopup.alert({
+                        title: '¡Bienvenido!',
+                        template: 'Bienvenido '+$scope.data.nickname
+                    });
+                    $location.path('/');
+                    $state.go('app.news');
+                });
+            }
+        });
+
+        //appDB.addUser(user).then(function(){
+        //    console.log('Registrado en appDB');
+        //}, function(err){});
     }, function(){
         //error
     });

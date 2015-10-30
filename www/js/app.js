@@ -153,5 +153,9 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
   }
 
   $httpProvider.interceptors.push('jwtInterceptor');
+  $httpProvider.defaults.headers.patch = {
+      'content-type': 'application/json;charset=utf-8',
+      'cache-control': 'no-cache'
+  }
 
 });
