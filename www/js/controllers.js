@@ -30,6 +30,7 @@ angular.module('starter.controllers', ['starter.services'])
 
     appDB.getUser(auth.profile.user_id).then(function(user){
         $scope.activeUser = user;
+        console.log(user.rating);
     });
 })
 
@@ -122,9 +123,9 @@ angular.module('starter.controllers', ['starter.services'])
 //    }
 })
 
-.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB, authService){
+.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB, authService, utilService){
   $scope.docs;
-  $scope.reporters = [];
+  $scope.showID;
 
   appDB.initDB();
   pubs = appDB.getPublications();
@@ -133,12 +134,13 @@ angular.module('starter.controllers', ['starter.services'])
           (function (i){
               $scope.getReporter(docs[i].reporter).then(function(data){
                   docs[i].reporterData = data;
+                  $scope.showID = utilService.stringDate(new Date(docs[i]._id));
                   return docs[i];
               });
           })(i);
       }
       $scope.docs = docs;
-      console.log(JSON.stringify($scope.docs))
+      //console.log(JSON.stringify($scope.docs))
   });
   $scope.getReporter = function(reporterID){
       return authService.callUser(reporterID).then(function(reporter){
@@ -197,7 +199,6 @@ angular.module('starter.controllers', ['starter.services'])
     appDB.getPublication(pubId).then(function(pub){
         authService.callUser(pub.reporter).then(function(reporter){
             $scope.reporter = reporter.data;
-            console.log("Publication reporter",JSON.stringify(reporter));
         });
     	$scope.pub = pub;
     	$scope.latLng = new google.maps.LatLng($scope.pub.location.lat, $scope.pub.location.lng);
@@ -219,7 +220,7 @@ angular.module('starter.controllers', ['starter.services'])
   };
 })
 
-.controller('PublishCtrl', function($scope, $location, $cordovaGeolocation, $ionicPopup, GetUU, appDB, auth) {
+.controller('PublishCtrl', function($scope, $state, $location, $cordovaGeolocation, $ionicPopup, GetUU, appDB, auth) {
   appDB.initDB();
   $scope.pub={
     size: 2,
@@ -258,11 +259,13 @@ angular.module('starter.controllers', ['starter.services'])
           title: '¡Publicación Exitosa!',
           template: '´Tu publicación ha sido registrada con éxito'
         });
+        state.go('app.news');
       }, function(err){
         var alertPopup = $ionicPopup.alert({
           title: 'Publicación Fallida',
           template: 'Ha ocurrido un problema'
         });
+        state.go('app.news');
       });
   }
   //----------------------CAMERA---------------------

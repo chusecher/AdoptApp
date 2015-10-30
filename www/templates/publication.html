@@ -1,6 +1,6 @@
 <ion-modal-view>
     <ion-header-bar class="bar-stable">
-        <h1 class="title">Publicación "'{{pub._id}}'"</h1>
+        <h1 class="title">{{showID}}</h1>
         <div class="buttons">
             <button class="button button-clear" ng-click="closePub()">Salir</button>
         </div>
@@ -9,7 +9,7 @@
         <div class="list">
             <div class="item item-divider">
                 <p align="center">
-                    {{pub._id}}
+                    {{pub.name}}
                 </p>
             </div>
             <div class="photo">
