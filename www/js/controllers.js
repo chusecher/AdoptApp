@@ -10,19 +10,6 @@ angular.module('starter.controllers', ['starter.services'])
   //});
               //POUCHDB -------------
   appDB.initDB();
-  $scope.online = false;
-    $scope.toggleOnline = function() {
-      $scope.online = !$scope.online;
-      if ($scope.online) {  // Read http://pouchdb.com/api.html#sync
-        $scope.sync = appDB.sync('adoptapp.smileupps.com/adoptappdb', {live: true})
-          .on('error', function (err) {
-            console.log("Syncing stopped");
-            console.log(err);
-          });
-      } else {
-        $scope.sync.cancel();
-      }
-    };
 })
 
 .controller('PlaylistsCtrl', function($scope) {
@@ -135,16 +122,29 @@ angular.module('starter.controllers', ['starter.services'])
 //    }
 })
 
-.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB){
+.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB, authService){
   $scope.docs;
-
+  $scope.reporters = [];
 
   appDB.initDB();
   pubs = appDB.getPublications();
   pubs.then(function(docs) {
+      for(var i in docs){
+          (function (i){
+              $scope.getReporter(docs[i].reporter).then(function(data){
+                  docs[i].reporterData = data;
+                  return docs[i];
+              });
+          })(i);
+      }
       $scope.docs = docs;
+      console.log(JSON.stringify($scope.docs))
   });
-
+  $scope.getReporter = function(reporterID){
+      return authService.callUser(reporterID).then(function(reporter){
+          return reporter.data;
+      });
+  }
 
 
   $scope.cards = [
@@ -169,7 +169,7 @@ angular.module('starter.controllers', ['starter.services'])
   }*/
 })
 
-.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB) {
+.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService) {
 
 	$ionicModal.fromTemplateUrl('templates/publication.html', {
 		scope: $scope,
@@ -181,6 +181,8 @@ angular.module('starter.controllers', ['starter.services'])
   $scope.closePub = function() {
     $scope.modal.hide();
     $scope.modal.remove();
+    $scope.pub = null;
+    $scope.reporter = null;
 	$ionicModal.fromTemplateUrl('templates/publication.html', {
 		scope: $scope,
 		animation: 'slide-in-up'
@@ -193,6 +195,10 @@ angular.module('starter.controllers', ['starter.services'])
 
   $scope.openPub = function(pubId) {
     appDB.getPublication(pubId).then(function(pub){
+        authService.callUser(pub.reporter).then(function(reporter){
+            $scope.reporter = reporter.data;
+            console.log("Publication reporter",JSON.stringify(reporter));
+        });
     	$scope.pub = pub;
     	$scope.latLng = new google.maps.LatLng($scope.pub.location.lat, $scope.pub.location.lng);
 
@@ -213,10 +219,11 @@ angular.module('starter.controllers', ['starter.services'])
   };
 })
 
-.controller('PublishCtrl', function($scope, $location, $cordovaGeolocation, $ionicPopup, GetUU, appDB) {
+.controller('PublishCtrl', function($scope, $location, $cordovaGeolocation, $ionicPopup, GetUU, appDB, auth) {
   appDB.initDB();
   $scope.pub={
-    size: 2
+    size: 2,
+    reporter: auth.profile.user_id
   }
 
   var options = {timeout: 10000, enableHighAccuracy: true};

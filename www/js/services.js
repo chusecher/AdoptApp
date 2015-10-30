@@ -43,9 +43,9 @@ function authService($q, $http){
         callUser: callUser,
     }
     function callUser(userId){
-        return $q.when($http.get('https://adoptapp.auth0.com/api/v2/users/'+userId)
+        return $q.when($http.get('https://adoptapp.auth0.com/api/v2/users/'+ userId)
         .then(function(response){
-            console.log("Successfull response");
+            console.log("Successfull response", JSON.stringify(response));
             return response;
         }))
     }
