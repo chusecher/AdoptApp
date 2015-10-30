@@ -5,9 +5,9 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
-                            'auth0', 'angular-storage', 'starter.services', 'angular-jwt'])
+                            'auth0', 'angular-storage', 'starter.services', 'angular-jwt','ngOpenFB'])
 
-.run(function($ionicPlatform, $rootScope, auth, store, jwtHelper, $location) {
+.run(function($ionicPlatform, $rootScope, auth, store, jwtHelper, $location, ngFB) {
 
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -22,6 +22,7 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
       StatusBar.styleDefault();
     }
   });
+  ngFB.init({appId: '199784313686540'});
   auth.hookEvents();
   var refreshingToken = null;
   $rootScope.$on('$locationChangeStart', function() {
@@ -153,6 +154,7 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
   }
 
   $httpProvider.interceptors.push('jwtInterceptor');
-  $httpProvider.defaults.headers.common.Authorization = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJWUmZWTDRFNXR5dllNNWdrNjAzZzJKMmZrN1R6VzVzdyIsInNjb3BlcyI6eyJ1c2VycyI6eyJhY3Rpb25zIjpbInJlYWQiXX19LCJpYXQiOjE0NDYyMjY4NzMsImp0aSI6IjM2MjA5ZWNmYzY3MTQ1YzY3NmY4MmY4YWVjNGExZTJmIn0.zDPAoS4Xo5BGwGCc3P2SwjFNYU3nypKLIOfp7Lc8-F0";
+  $httpProvider.defaults.headers.get = {'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJWUmZWTDRFNXR5dllNNWdrNjAzZzJKMmZrN1R6VzVzdyIsInNjb3BlcyI6eyJ1c2VycyI6eyJhY3Rpb25zIjpbInJlYWQiXX19LCJpYXQiOjE0NDYyMjY4NzMsImp0aSI6IjM2MjA5ZWNmYzY3MTQ1YzY3NmY4MmY4YWVjNGExZTJmIn0.zDPAoS4Xo5BGwGCc3P2SwjFNYU3nypKLIOfp7Lc8-F0"}
+  //$httpProvider.defaults.headers.common.Authorization = ;
 
 });

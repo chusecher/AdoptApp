@@ -123,7 +123,7 @@ angular.module('starter.controllers', ['starter.services'])
 //    }
 })
 
-.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB, authService, utilService){
+.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB, authService, utilService,ngFB){
   $scope.docs;
   $scope.showID;
 
@@ -148,6 +148,26 @@ angular.module('starter.controllers', ['starter.services'])
       });
   }
 
+  $scope.share = function (event, auth) {
+      console.log("Trying to share");
+      console.log(auth.profile.identities.access_token);
+      ngFB.api({
+          method: 'POST',
+          path: '/me/feed',
+          params: {
+              message: "Este animalito se encuentra solitario. Adóptalo con AdoptApp."
+          },
+          headers: {Authorization: auth.profile.identities.access_token}
+      }).then(
+          function () {
+              console.log("Nice");
+              alert('Se ha comartido satisfactoriamente');
+          },
+          function () {
+              console.log("Tabarnacle");
+              alert('Un error ocurrió al compartir en Facebook');
+          });
+  };
 
   $scope.cards = [
     {id: 1, date: 'Ayer'            , description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
