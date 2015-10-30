@@ -3,43 +3,41 @@
         <!--<div class="bar bar-header bar-balanced">
             <h1 class="title">mi-nombre</h1>
         </div>-->
+        <div class="list list-inset">
         <a class="item item-avatar" href="#">
             <img src="{{auth.profile.picture}}">
                 <h2>{{auth.profile.name}}</h2>
             <p>{{auth.profile.nickname}}</p>
         </a>
-        <div class="item item-divider">
-            Datos personales
-        </div>
-        <div class="list">
-            <div class="item item-icon-left" href="#">
+    </div>
+        <div class="list list-inset">
+            <div class="item item-divider">
+                Datos personales
+            </div>
+            <label class="item item-input item-stacked-label">
                 <i class="icon ion-ios-paw"></i>
-                Nombre de usuario
-                <span class="item-note">
-                    {{auth.profile.username}}
-                </span>
-            </div>
-            <div class="item item-icon-left" href="#">
+                <span class="input-label">Nombre de Usuario</span>
+                <input type="text" placeholder="{{auth.profile.username}}">
+            </label>
+            <label class="item item-input item-stacked-label">
                 <i class="icon ion-email"></i>
-                e-mail
-                <span class="item-note">
-                    {{auth.profile.email}}
-                </span>
-            </div>
-            <div class="item item-icon-left item-icon-right" href="#">
+                <span class="input-label">Email</span>
+                <input type="text" placeholder="{{auth.profile.email}}">
+            </label>
+            <label class="item item-input item-stacked-label">
                 <i class="icon ion-ios-telephone-outline"></i>
-                Phone
-                <span class="item-note">
-                    {{activeUser.phone}}
-                </span>
-            </div>
+                <span class="input-label">Teléfono</span>
+                <input type="text" placeholder="{{auth.profile.phone}}">
+            </label>
             <div class="item item-icon-left" href="#">
                 <i class="icon ion-person-stalker"></i>
                 Rating
                 <span class="badge badge-assertive">{{activeUser.rating}}%</span>
             </div>
+        </div>
+        <div class="list list-inset">
             <div class="item item-divider">
-                Connections
+                Conecciones
             </div>
             <div class="item item-icon-left" href="#">
                 <i class="icon ion-social-twitter"></i>
@@ -51,6 +49,11 @@
                 Facebook
                 <span class="item-note">Mateo Nieto</span>
             </div>
+        </div>
+        <div class="padding">
+            <button class="button button-block button-positive">
+                Aplicar Cambios
+            </button>
         </div>
     </ion-content>
 </ion-view>
