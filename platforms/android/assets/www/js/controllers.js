@@ -10,19 +10,6 @@ angular.module('starter.controllers', ['starter.services'])
   //});
               //POUCHDB -------------
   appDB.initDB();
-  $scope.online = false;
-    $scope.toggleOnline = function() {
-      $scope.online = !$scope.online;
-      if ($scope.online) {  // Read http://pouchdb.com/api.html#sync
-        $scope.sync = appDB.sync('adoptapp.smileupps.com/adoptappdb', {live: true})
-          .on('error', function (err) {
-            console.log("Syncing stopped");
-            console.log(err);
-          });
-      } else {
-        $scope.sync.cancel();
-      }
-    };
 })
 
 .controller('PlaylistsCtrl', function($scope) {
@@ -36,11 +23,18 @@ angular.module('starter.controllers', ['starter.services'])
   ];
 })
 
-.controller('MyProfileCtrl', function($scope) {
+.controller('MyProfileCtrl', function($scope, auth, appDB) {
+    appDB.initDB();
+    $scope.activeUser;
+    $scope.auth = auth;
 
+    appDB.getUser(auth.profile.user_id).then(function(user){
+        $scope.activeUser = user;
+        console.log(user.rating);
+    });
 })
 
-.controller('RegisCtrl', function($scope, $ionicPopup, appDB) {
+.controller('RegisCtrl', function($scope, $ionicPopup, appDB, $http) {
   appDB.initDB();
   $scope.user = {};
   $scope.createUser = function(email, name, lastname, phone, password){
@@ -70,39 +64,93 @@ angular.module('starter.controllers', ['starter.services'])
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
 
-.controller('LoginCtrl', function($scope,$location, store, auth, $state) {
-
+.controller('LoginCtrl', function($scope, $location, $ionicPopup, store, auth, $state, appDB, authService) {
+    appDB.initDB();
     $scope.data = {};
 
-    $scope.login = function() {
-        auth.signin({
-            dict: 'es',
-            authParams:{
-                scope: 'openid offline_access',
-                device: 'Mobile device'
+//    $scope.login = function() {
+    auth.signin({
+        container: 'hiw-login-container',
+        dict: 'es',
+        authParams:{
+            scope: 'openid offline_access',
+            device: 'Mobile device'
+        }
+    }, function(profile, token, accessToken, state, refreshToken){
+        store.set('profile', profile);
+        store.set('token', token);
+        store.set('refreshToken', refreshToken);
+
+        appDB.getUser(auth.profile.user_id).then(function(doc){
+            console.log(JSON.stringify(doc));
+            if(doc.status === 404){
+                console.log("Usuario nuevo");
+                var user = {
+                    _id : auth.profile.user_id,
+                    phone: '',
+                    rating: 0,
+                    type: 'user',
+                    status: 'OK'
+                }
+                appDB.addUser(user).then(function(){
+                    var alertPopup = $ionicPopup.alert({
+                        title: '¡Registro Exitoso!',
+                        template: 'Por favor edita tus datos en tu perfil'
+                    });
+                    $location.path('/');
+                    $state.go('app.myprofile');
+                });
+            }else if (doc.status === "OK") {
+                console.log("Login", 'Usuario registrado', JSON.stringify(doc));
+                authService.callUser(auth.profile.user_id).then(function(user){
+                    $scope.data = user.data;
+                    var alertPopup = $ionicPopup.alert({
+                        title: '¡Bienvenido!',
+                        template: 'Bienvenido '+$scope.data.nickname
+                    });
+                    $location.path('/');
+                    $state.go('app.news');
+                });
             }
-        }, function(profile, token, accessToken, state, refreshToken){
-            store.set('profile', profile);
-            store.set('token', token);
-            store.set('refreshToken', refreshToken);
-            $location.path('/');
-            $state.go('app.news')
-        }, function(){
-            //error
         });
-    }
+
+        //appDB.addUser(user).then(function(){
+        //    console.log('Registrado en appDB');
+        //}, function(err){});
+    }, function(){
+        //error
+    });
+//    }
 })
 
-.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB){
+.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB, authService, utilService, $cordovaSocialSharing){
   $scope.docs;
-
+  $scope.showID;
 
   appDB.initDB();
   pubs = appDB.getPublications();
   pubs.then(function(docs) {
+      for(var i in docs){
+          (function (i){
+              $scope.getReporter(docs[i].reporter).then(function(data){
+                  docs[i].reporterData = data;
+                  $scope.showID = utilService.stringDate(new Date(docs[i]._id));
+                  return docs[i];
+              });
+          })(i);
+      }
       $scope.docs = docs;
+      //console.log(JSON.stringify($scope.docs))
   });
-
+  $scope.getReporter = function(reporterID){
+      return authService.callUser(reporterID).then(function(reporter){
+          return reporter.data;
+      });
+  }
+  $scope.socialShare = function(messages, subject, image, url){
+      console.log("Sharing");
+      $cordovaSocialSharing.share(messages, subject, image, url);
+  }
 
 
   $scope.cards = [
@@ -127,7 +175,7 @@ angular.module('starter.controllers', ['starter.services'])
   }*/
 })
 
-.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB) {
+.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService) {
 
 	$ionicModal.fromTemplateUrl('templates/publication.html', {
 		scope: $scope,
@@ -139,6 +187,8 @@ angular.module('starter.controllers', ['starter.services'])
   $scope.closePub = function() {
     $scope.modal.hide();
     $scope.modal.remove();
+    $scope.pub = null;
+    $scope.reporter = null;
 	$ionicModal.fromTemplateUrl('templates/publication.html', {
 		scope: $scope,
 		animation: 'slide-in-up'
@@ -151,6 +201,9 @@ angular.module('starter.controllers', ['starter.services'])
 
   $scope.openPub = function(pubId) {
     appDB.getPublication(pubId).then(function(pub){
+        authService.callUser(pub.reporter).then(function(reporter){
+            $scope.reporter = reporter.data;
+        });
     	$scope.pub = pub;
     	$scope.latLng = new google.maps.LatLng($scope.pub.location.lat, $scope.pub.location.lng);
 
@@ -171,10 +224,11 @@ angular.module('starter.controllers', ['starter.services'])
   };
 })
 
-.controller('PublishCtrl', function($scope, $location, $cordovaGeolocation, $ionicPopup, GetUU, appDB) {
+.controller('PublishCtrl', function($scope, $state, $location, $cordovaGeolocation, $ionicPopup, GetUU, appDB, auth) {
   appDB.initDB();
   $scope.pub={
-    size: 2
+    size: 2,
+    reporter: auth.profile.user_id
   }
 
   var options = {timeout: 10000, enableHighAccuracy: true};
@@ -209,11 +263,13 @@ angular.module('starter.controllers', ['starter.services'])
           title: '¡Publicación Exitosa!',
           template: '´Tu publicación ha sido registrada con éxito'
         });
+        state.go('app.news');
       }, function(err){
         var alertPopup = $ionicPopup.alert({
           title: 'Publicación Fallida',
           template: 'Ha ocurrido un problema'
         });
+        state.go('app.news');
       });
   }
   //----------------------CAMERA---------------------

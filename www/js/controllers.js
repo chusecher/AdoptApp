@@ -148,7 +148,6 @@ angular.module('starter.controllers', ['starter.services'])
       });
   }
 
-
   $scope.cards = [
     {id: 1, date: 'Ayer'            , description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
     {id: 2, date: '10 de Octubre'   , description:'Una mamá pincher dió a luz a cachorritos y están todos disponibles para adopción.', breed: 'Pincher', photo: 'img/pincher1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},

@@ -1,7 +1,7 @@
 angular.module('starter.services', [])
 
 // get upload url for file transfer (upload to http post service)
-
+/*
 .factory('LoginService', function($q) {
     return {
         loginUser: function(name, pw) {
@@ -25,7 +25,7 @@ angular.module('starter.services', [])
         }
     }
 })
-
+*/
 .factory('GetUU', function() {
     var uploadurl = "http://localhost/upl";
     return  {
@@ -35,7 +35,61 @@ angular.module('starter.services', [])
     }
 })
 
-.factory('appDB', ['$q', dbService]);
+.factory('appDB', ['$q', dbService])
+.factory('authService', ['$q', '$http', 'auth', authService])
+.factory('utilService', [utilService]);
+
+function utilService(){
+    return{
+        stringDate: stringDate
+    }
+    function stringDate (date){
+        var dias = new Array('Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado');
+        var meses = new Array('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre');
+        var fecha_actual = date;
+        var offset = fecha_actual.getTimezoneOffset()/60;
+
+          dia_mes = fecha_actual.getDate(); //dia del mes
+          dia_semana = fecha_actual.getDay(); //dia de la semana
+          mes = fecha_actual.getMonth() + 1;
+          anio = fecha_actual.getFullYear();
+
+          var fechaHora = date;
+          var horas = fechaHora.getHours()+offset;//GMT
+          var minutos = fechaHora.getMinutes();
+          var segundos = fechaHora.getSeconds();
+          var sufijo = 'AM';
+
+          if(horas > 12) {
+              horas = horas - 12;
+              sufijo = 'PM';
+          }
+
+          if(horas < 10) { horas = '0' + horas; }
+          if(minutos < 10) { minutos = '0' + minutos; }
+          if(segundos < 10) { segundos = '0' + segundos; }
+
+          //escribe en pagina
+
+          return (dias[dia_semana] + ', ' + dia_mes + ' de ' + meses[mes - 1] + ' de ' + anio + ', '+ horas + ':'+minutos + ' ' + sufijo)
+      }
+
+}
+
+function authService($q, $http){
+    return{
+        callUser: callUser,
+    }
+    function callUser(userId){
+        return $q.when($http.get('https://adoptapp.auth0.com/api/v2/users/'+ userId)
+        .then(function(response){
+            //console.log("Successfull response", JSON.stringify(response));
+            return response;
+        }).catch(function(err){
+            console.log(JSON.stringify(err));
+        }))
+    }
+}
 
 function dbService($q){
     var db;
@@ -97,8 +151,6 @@ function dbService($q){
                     row.value._id = new Date(row.value._id);
                     row.value.expirationDate = new Date(row.value.expirationDate);
 
-                    console.log(row.value.type);
-
                     return row.value;
                 });
 
@@ -146,7 +198,9 @@ function dbService($q){
         }));
     }
     function getUser(userID){
-        return db.get(userID).then(function (doc) {
+        return db.get(userID).catch(function (err) {
+            return err;
+        }).then(function(doc){
             return doc;
         });
     }

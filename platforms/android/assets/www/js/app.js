@@ -153,5 +153,6 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
   }
 
   $httpProvider.interceptors.push('jwtInterceptor');
+  $httpProvider.defaults.headers.common.Authorization = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJWUmZWTDRFNXR5dllNNWdrNjAzZzJKMmZrN1R6VzVzdyIsInNjb3BlcyI6eyJ1c2VycyI6eyJhY3Rpb25zIjpbInJlYWQiXX19LCJpYXQiOjE0NDYyMjY4NzMsImp0aSI6IjM2MjA5ZWNmYzY3MTQ1YzY3NmY4MmY4YWVjNGExZTJmIn0.zDPAoS4Xo5BGwGCc3P2SwjFNYU3nypKLIOfp7Lc8-F0";
 
 });
