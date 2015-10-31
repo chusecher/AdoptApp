@@ -1,6 +1,6 @@
 <ion-modal-view>
     <ion-header-bar class="bar-stable">
-        <h1 class="title">{{showID}}</h1>
+        <h1 class="title">{{pub.showID}}</h1>
         <div class="buttons">
             <button class="button button-clear" ng-click="closePub()">Salir</button>
         </div>
@@ -13,7 +13,7 @@
                 </p>
             </div>
             <div class="photo">
-                <img src="{{cards[0].photo}}" width="100%" height="100%"/>
+                <img src="{{pubImageURL}}" width="100%" height="100%"/>
             </div>
             <div class="item item-divider">
                 Descripción

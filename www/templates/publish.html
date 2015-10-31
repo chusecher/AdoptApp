@@ -5,21 +5,9 @@
             Imagen
         </div>
         <div align="center">
-        	<img src="img/profile_default_pet.jpg" width="60%" height="60%"/>
+            <img id="petPic" src="{{myPicture}}" width="60%" height="60%"/>
         </div>
-        <!--<div class="item">
-        	Foto
-        	<item class="item item-icon-left"><i class="icon ion-chatbubble-working"></i>
-			<label class="item item-input">
-				<textarea ng-model="obj.text" name="posttext" rows="4"></textarea>
-			</label>
-        	<div class="padding">
-				<button class="button button-block button-positive icon-left ion-ios7-camera" ng-click="takePicture()">Camera</button>
-			</div>
-			<div class="padding">
-				<button class="button button-block button-positive icon-right ion-chevron-right" ng-click="update(obj)">Upload</button>
-			</div>
-        </div>-->
+
         <div class="button-bar">
             <button class="button button-positive" ng-click="takePicture()">
                 <i class="icon ion-aperture"> Camera</i>
@@ -33,11 +21,6 @@
         <div class="item item-divider">
             Información de Mascota
         </div>
-    	<!--<label class="item item-input item-floating-label">
-    		<i class="icon ion-ios-paw placeholder-icon larger"></i>
-    		<span class="input-label">Raza</span>
-    		<input type="text" placeholder="Raza" ng-model="pub.breed">
-    	</label>-->
         <label class="item item-input item-select">
             <i class="icon ion-ios-paw placeholder-icon"></i>
             <div class="input-label">
@@ -117,7 +100,7 @@
         </div>
     </div>
     <div class="button-bar bar-positive">
-        <a class="button" ng-click="createPub(pub.reporter, pub.breed, pub.size, pub.description, pub.name, pub.pos)">Publicar</a>
+        <a class="button" ng-click="createPub(pub.reporter, pub.breed, pub.size, pub.description, pub.name, pub.pos, myPicture)">Publicar</a>
     </div>
   </ion-content>
 </ion-view>
