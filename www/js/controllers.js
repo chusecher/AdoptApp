@@ -23,15 +23,44 @@ angular.module('starter.controllers', ['starter.services'])
   ];
 })
 
-.controller('MyProfileCtrl', function($scope, auth, appDB) {
+.controller('MyProfileCtrl', function($scope, $state, $ionicPopup, auth, appDB, $ionicHistory) {
     appDB.initDB();
     $scope.activeUser;
     $scope.auth = auth;
+    $scope.newData = {
+        phone: ''
+    }
 
     appDB.getUser(auth.profile.user_id).then(function(user){
         $scope.activeUser = user;
         console.log(user.rating);
     });
+    $scope.updateUser = function(phone){
+        var user = {
+            _id: auth.profile.user_id,
+            _rev: $scope.activeUser._rev,
+            phone: phone,
+            rating: 0,
+            type: 'user',
+            status: 'OK'
+        }
+        appDB.addUser(user).then(function(){
+          var alertPopup = $ionicPopup.alert({
+              title: '¡Actualización Exitosa!',
+              template: 'Tus datos han sido actualizados con éxito'
+          });
+          $ionicHistory.nextViewOptions({
+              disableBack: true
+          });
+          $state.go('app.news', {}, {reload: true});
+        }, function(err){
+            console.log(JSON.stringify(err))
+          var alertPopup = $ionicPopup.alert({
+              title: 'Actualización Fallida',
+              template: 'Ha ocurrido un problema con tu actualización'
+          });
+        });
+    }
 })
 
 .controller('RegisCtrl', function($scope, $ionicPopup, appDB, $http) {
@@ -87,7 +116,7 @@ angular.module('starter.controllers', ['starter.services'])
                 console.log("Usuario nuevo");
                 var user = {
                     _id : auth.profile.user_id,
-                    phone: '',
+                    phone: 'Escribe un número para que puedan contactarte',
                     rating: 0,
                     type: 'user',
                     status: 'OK'
@@ -123,22 +152,17 @@ angular.module('starter.controllers', ['starter.services'])
 //    }
 })
 
-.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
-  $scope.docs;
-  $scope.showID;
-
-  console.log(JSON.stringify(auth.profile.identities.access_token));
-
+.controller('PubsCtrl', function($scope, $q, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
   appDB.initDB();
   pubs = appDB.getPublications();
-  pubs.then(function(docs) {
+  $q.when(pubs.then(function(docs) {
       for(var i in docs){
           (function (i){
               appDB.getAttachment(docs[i]._id).then(function(blob){
                   docs[i].pubImage = URL.createObjectURL(blob);
                   return docs[i];
               });
-              $scope.getReporter(docs[i].reporter).then(function(data){
+              getReporter(docs[i].reporter).then(function(data){
                   docs[i].reporterData = data;
                   docs[i].showID = utilService.stringDate(new Date(docs[i]._id));
                   return docs[i];
@@ -146,26 +170,36 @@ angular.module('starter.controllers', ['starter.services'])
           })(i);
       }
       $scope.docs = docs;
-      //console.log(JSON.stringify($scope.docs))
-  });
-  $scope.getReporter = function(reporterID){
+  }));
+  getReporter = function(reporterID){
       return authService.callUser(reporterID).then(function(reporter){
           return reporter.data;
       });
   }
 
-  $scope.share = function (event) {
+  $scope.fbShare = function (message) {
+      var ids = auth.profile.identities;
+      var isFB = false;
+      var id = 0;
+      for(var id in ids){
+          if(ids[id].provider === 'facebook'){isFB = true};
+      }
+      if(!isFB){
+          console.log("No está conectado con facebook");
+          return;
+      }
       console.log("Trying to share");
-      var toky = JSON.stringify(auth.profile.identities[0].access_token);
+      var toky = auth.profile.identities[id].access_token;
 
       console.log("Token",toky);
+
+      ngFB.init({appId: '199784313686540', accessToken: toky});
       ngFB.api({
           method: 'POST',
           path: '/me/feed',
           params: {
-              message: "Este animalito se encuentra solitario. Adóptalo con AdoptApp."
-          },
-          headers: {'Authorization': 'adsdadasdasd'}
+              message: message
+          }
       }).then(
           function () {
               console.log("Nice");
@@ -176,14 +210,6 @@ angular.module('starter.controllers', ['starter.services'])
               alert('Un error ocurrió al compartir en Facebook');
           });
   };
-
-  $scope.cards = [
-    {id: 1, date: 'Ayer'            , description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
-    {id: 2, date: '10 de Octubre'   , description:'Una mamá pincher dió a luz a cachorritos y están todos disponibles para adopción.', breed: 'Pincher', photo: 'img/pincher1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
-    {id: 3, date: '30 de Septiembre', description:'Ya no tengo los medios para mantener a mi gato. Si alguien lo quiere cuidar.', breed: 'Snowshoe', photo: 'img/snowshoe1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
-    {id: 4, date: '29 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'img/perro.jpg', reporter: 'Pepito1'},
-    {id: 5, date: '15 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'img/perro.jpg', reporter: 'Pepito1'}
-  ];
 })
 
 .controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService, utilService) {
@@ -240,7 +266,7 @@ angular.module('starter.controllers', ['starter.services'])
   };
 })
 
-.controller('PublishCtrl', function($scope, $state, $location, $cordovaGeolocation,
+.controller('PublishCtrl', function($scope, $state, $location, $cordovaGeolocation, $ionicHistory,
                                     $ionicPopup, GetUU, appDB, auth, camService) {
     appDB.initDB();
     $scope.pub = {
@@ -290,7 +316,10 @@ angular.module('starter.controllers', ['starter.services'])
               title: '¡Publicación Exitosa!',
               template: '´Tu publicación ha sido registrada con éxito'
             });
-            //$state.go('app.news');
+            $ionicHistory.nextViewOptions({
+                disableBack: true
+            });
+            $state.go('app.news', {}, {reload: true});
           }, function(err){
               console.log(JSON.stringify(err));
             var alertPopup = $ionicPopup.alert({
@@ -336,13 +365,13 @@ angular.module('starter.controllers', ['starter.services'])
         encodingType: 0,
         saveToPhotoAlbum: true
     };
-    $scope.getPicture = function(){
-        camService.getPicture().then(function(picture){
+    $scope.getPicture = function(options){
+        camService.getPicture(options).then(function(picture){
             console.log("Photo", picture);
             $scope.myPicture = picture;
         }, function(err){
             console.err(err);
-        }, options);
+        });
     }
 
   // do POST on upload url form by http / html form

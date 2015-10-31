@@ -22,7 +22,6 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
       StatusBar.styleDefault();
     }
   });
-  ngFB.init({appId: '199784313686540'});
   auth.hookEvents();
   var refreshingToken = null;
   $rootScope.$on('$locationChangeStart', function() {
@@ -118,6 +117,7 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
     }
   })
   .state('app.news', {
+    cache: false,
     url: '/news',
     views: {
       'menuContent': {

@@ -20,14 +20,7 @@ function camService($q){
     return{
         getPicture: getPicture
     }
-    function getPicture(){
-        var options =   {
-            quality: 50,
-            destinationType: destinationType,
-            sourceType: pictureSource,
-            encodingType: 0,
-            saveToPhotoAlbum: true
-        };
+    function getPicture(options){
         var q = $q.defer();
         navigator.camera.getPicture(function(result){
             q.resolve(result);
@@ -108,10 +101,20 @@ function dbService($q){
 
     function initDB(){
         db = new PouchDB('adoptappdb');
-    	remoteCouch = 'https://adoptapp.smileupps.com/adoptappdb';
-        remotedb = new PouchDB(remoteCouch);
+        remotedb = new PouchDB('https://adoptapp.smileupps.com/adoptappdb');
 
-        PouchDB.sync(remotedb, db, {live: true});
+        db.sync(remotedb, {
+          live: true,
+          retry: true
+        }).on('change', function (change) {
+          // yo, something changed!
+        }).on('paused', function (info) {
+          // replication was paused, usually because of a lost connection
+        }).on('active', function (info) {
+          // replication was resumed
+        }).on('error', function (err) {
+          // totally unhandled error (shouldn't happen)
+        });
 
         var typeIndex = {
             _id: '_design/type_index',
@@ -139,7 +142,7 @@ function dbService($q){
             }
         })
 
-        PouchDB.sync(remotedb, db, {live: true});
+        //PouchDB.sync(db, localdb, {live: true});
 
         db.query('type_index/animal', {limit: 0}).then(function (res) {
             // index was built!
@@ -150,19 +153,16 @@ function dbService($q){
     };
 
     function getPublications(){
-        console.log('Obteniendo Publicaciones')
     	if(!publications){
             return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
                 publications = docs.rows.map(function(row){
                     row.value._id = new Date(row.value._id);
                     row.value.expirationDate = new Date(row.value.expirationDate);
 
-                    console.log(JSON.stringify(row.value))
-
                     return row.value;
                 });
 
-                db.changes({live: true, since: 'now', include_docs: true})
+                db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
                     .on('change', onDatabaseChange);
 
                 return publications;
