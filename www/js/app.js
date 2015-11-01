@@ -70,15 +70,6 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
     }
   })
 
-  .state('app.search', {
-    url: '/search',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/search.html'
-      }
-    }
-  })
-
   .state('app.publish', {
       url: '/publish',
       views: {

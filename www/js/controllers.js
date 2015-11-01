@@ -220,6 +220,11 @@ angular.module('starter.controllers', ['starter.services'])
 		$scope.modal = modal;
 	});
 
+    $scope.mySearch = function(breed){
+        console.log("Searching for: ",breed);
+    };
+
+
   $scope.closePub = function() {
     $scope.modal.hide();
     $scope.modal.remove();
