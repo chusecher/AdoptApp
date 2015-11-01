@@ -61,7 +61,6 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
         url: '/login',
         templateUrl: 'templates/login.html',
         controller: 'LoginCtrl'
-
     })
 
   .state('app', {
@@ -71,15 +70,6 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
     controller: 'AppCtrl',
     data:{
         requiresLogin:true
-    }
-  })
-
-  .state('app.search', {
-    url: '/search',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/search.html'
-      }
     }
   })
 

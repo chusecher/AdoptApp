@@ -12,17 +12,6 @@ angular.module('starter.controllers', ['starter.services'])
   appDB.initDB();
 })
 
-.controller('PlaylistsCtrl', function($scope) {
-  $scope.playlists = [
-    { title: 'Reggae', id: 1 },
-    { title: 'Chill', id: 2 },
-    { title: 'Dubstep', id: 3 },
-    { title: 'Indie', id: 4 },
-    { title: 'Rap', id: 5 },
-    { title: 'Cowbell', id: 6 }
-  ];
-})
-
 .controller('MyProfileCtrl', function($scope, $state, $ionicPopup, auth, appDB, $ionicHistory) {
     appDB.initDB();
     $scope.activeUser;
@@ -234,6 +223,11 @@ angular.module('starter.controllers', ['starter.services'])
 	}).then(function(modal){
 		$scope.modal = modal;
 	});
+
+    $scope.mySearch = function(breed){
+        console.log("Searching for: ",breed);
+    };
+
 
   $scope.closePub = function() {
     $scope.modal.hide();
