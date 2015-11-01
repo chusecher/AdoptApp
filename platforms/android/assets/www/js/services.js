@@ -102,9 +102,9 @@ function dbService($q){
     };
 
     function initDB(){
-        db = new PouchDB('adoptappdb');
-        remotedb = new PouchDB('https://adoptapp.smileupps.com/adoptappdb');
-
+        //db = new PouchDB('adoptappdb');
+        db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb');
+/*
         db.sync(remotedb, {
           live: true,
           retry: true
@@ -117,7 +117,7 @@ function dbService($q){
         }).on('error', function (err) {
           // totally unhandled error (shouldn't happen)
         });
-
+*/
         var typeIndex = {
             _id: '_design/type_index',
             views: {

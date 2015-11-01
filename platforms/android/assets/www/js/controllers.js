@@ -12,17 +12,6 @@ angular.module('starter.controllers', ['starter.services'])
   appDB.initDB();
 })
 
-.controller('PlaylistsCtrl', function($scope) {
-  $scope.playlists = [
-    { title: 'Reggae', id: 1 },
-    { title: 'Chill', id: 2 },
-    { title: 'Dubstep', id: 3 },
-    { title: 'Indie', id: 4 },
-    { title: 'Rap', id: 5 },
-    { title: 'Cowbell', id: 6 }
-  ];
-})
-
 .controller('MyProfileCtrl', function($scope, $state, $ionicPopup, auth, appDB, $ionicHistory) {
     appDB.initDB();
     $scope.activeUser;
@@ -93,7 +82,7 @@ angular.module('starter.controllers', ['starter.services'])
 .controller('PlaylistCtrl', function($scope, $stateParams) {
 })
 
-.controller('LoginCtrl', function($scope, $location, $ionicPopup, store, auth, $state, appDB, authService) {
+.controller('LoginCtrl', function($scope, $location, $ionicHistory, $ionicPopup, store, auth, $state, appDB, authService) {
     appDB.initDB();
     $scope.data = {};
 
@@ -126,6 +115,9 @@ angular.module('starter.controllers', ['starter.services'])
                         template: 'Por favor edita tus datos en tu perfil'
                     });
                     $location.path('/');
+                    $ionicHistory.nextViewOptions({
+                        disableBack: true
+                    });
                     $state.go('app.myprofile');
                 });
             }else if (doc.status === "OK") {
@@ -137,6 +129,9 @@ angular.module('starter.controllers', ['starter.services'])
                         template: 'Bienvenido '+$scope.data.nickname
                     });
                     $location.path('/');
+                    $ionicHistory.nextViewOptions({
+                        disableBack: true
+                    });
                     $state.go('app.news');
                 });
             }
@@ -151,7 +146,7 @@ angular.module('starter.controllers', ['starter.services'])
 //    }
 })
 
-.controller('PubsCtrl', function($scope, $q, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
+.controller('PubsCtrl', function($scope, $q, $ionicPopup, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
   appDB.initDB();
   pubs = appDB.getPublications();
   $q.when(pubs.then(function(docs) {
@@ -184,7 +179,10 @@ angular.module('starter.controllers', ['starter.services'])
           if(ids[id].provider === 'facebook'){isFB = true};
       }
       if(!isFB){
-          console.log("No está conectado con facebook");
+          var alertPopup = $ionicPopup.alert({
+              title: 'Error de conexiones',
+              template: 'No estas conectado a través de facebook'+$scope.data.nickname
+          });
           return;
       }
       console.log("Trying to share");
@@ -202,11 +200,17 @@ angular.module('starter.controllers', ['starter.services'])
       }).then(
           function () {
               console.log("Nice");
-              alert('Se ha compartido satisfactoriamente');
+              var alertPopup = $ionicPopup.alert({
+                  title: 'Facebook',
+                  template: 'Se ha compartido exitosamente'
+              });
           },
           function (err) {
               console.log("Tabarnacle", JSON.stringify(err));
-              alert('Un error ocurrió al compartir en Facebook');
+              var alertPopup = $ionicPopup.alert({
+                  title: 'Error',
+                  template: JSON.stringify(err)
+              });
           });
   };
 })
@@ -219,6 +223,11 @@ angular.module('starter.controllers', ['starter.services'])
 	}).then(function(modal){
 		$scope.modal = modal;
 	});
+
+    $scope.mySearch = function(breed){
+        console.log("Searching for: ",breed);
+    };
+
 
   $scope.closePub = function() {
     $scope.modal.hide();
@@ -319,7 +328,7 @@ angular.module('starter.controllers', ['starter.services'])
                 disableBack: true
             });
             $state.go('app.news', {}, {reload: true});
-          }, function(err){
+        }).catch(function(err){
               console.log(JSON.stringify(err));
             var alertPopup = $ionicPopup.alert({
               title: 'Publicación Fallida',

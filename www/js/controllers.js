@@ -332,7 +332,7 @@ angular.module('starter.controllers', ['starter.services'])
               console.log(JSON.stringify(err));
             var alertPopup = $ionicPopup.alert({
               title: 'Publicación Fallida',
-              template: 'Ha ocurrido un problema'
+              template: 'Ha ocurrido un problema: ' + JSON.stringify(err)
             });
           });
         console.log(JSON.stringify(publication));
@@ -367,7 +367,7 @@ angular.module('starter.controllers', ['starter.services'])
     });
 
     $scope.options = {
-        quality: 50,
+        quality: 25,
         destinationType: destinationType,
         sourceType: pictureSource,
         encodingType: 0,
@@ -383,7 +383,7 @@ angular.module('starter.controllers', ['starter.services'])
     }
 
   // do POST on upload url form by http / html form
-    $scope.update = function(obj) {
+    $scope.update = function() {
         if (!$scope.cameraData.uploadurl){
             // error handling no upload url
             return;
@@ -397,7 +397,7 @@ angular.module('starter.controllers', ['starter.services'])
         options.fileName=$scope.mypicture.substr($scope.mypicture.lastIndexOf('/')+1);
         options.mimeType="image/jpeg";
         var params = {};
-        params.other = obj.text; // some other POST fields
+        //params.other = obj.text; // some other POST fields
         options.params = params;
 
         //console.log("new imp: prepare upload now");
