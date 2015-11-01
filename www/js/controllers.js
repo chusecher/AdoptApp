@@ -378,15 +378,17 @@ angular.module('starter.controllers', ['starter.services'])
         targetWidth: 800,
         targetHeight: 600,
         sourceType: sourceTypeLoad,
-        encodingType: 0,
-        saveToPhotoAlbum: true
+        encodingType: 0
     };
     $scope.getPicture = function(options){
         camService.getPicture(options).then(function(picture){
             console.log("Photo", picture);
             $scope.myPicture = picture;
-
         }, function(err){
+            var alertPopup = $ionicPopup.alert({
+              title: 'Error de captura',
+              template: 'Ha ocurrido un problema: ' + JSON.stringify(err)
+            });
             console.err(err);
         });
     }
