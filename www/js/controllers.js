@@ -181,7 +181,7 @@ angular.module('starter.controllers', ['starter.services'])
       if(!isFB){
           var alertPopup = $ionicPopup.alert({
               title: 'Error de conexiones',
-              template: 'No estas conectado a través de facebook'+$scope.data.nickname
+              template: 'No estas conectado a través de facebook'
           });
           return;
       }
@@ -282,11 +282,10 @@ angular.module('starter.controllers', ['starter.services'])
         size: 2,
         reporter: auth.profile.user_id
     }
-
+  var defaultPic = "img/profile_default_pet.jpg";
   var options = {timeout: 10000, enableHighAccuracy: true};
   $cordovaGeolocation.getCurrentPosition(options).then(function(position){
-
-	$scope.pub.pos = {lat: position.coords.latitude, lng: position.coords.longitude};
+    $scope.pub.pos = {lat: position.coords.latitude, lng: position.coords.longitude};
 
   }, function(error){
 		console.log("Could not get location");
@@ -328,6 +327,7 @@ angular.module('starter.controllers', ['starter.services'])
                 disableBack: true
             });
             $state.go('app.news', {}, {reload: true});
+            $scope.myPicture = defaultPic;
         }).catch(function(err){
               console.log(JSON.stringify(err));
             var alertPopup = $ionicPopup.alert({
@@ -340,24 +340,21 @@ angular.module('starter.controllers', ['starter.services'])
   }
   //----------------------CAMERA---------------------
   // init variables
-  $scope.myPicture = "img/profile_default_pet.jpg";
+  $scope.myPicture = defaultPic;
   $scope.cameraData = {};
-  $scope.obj;
-  var pictureSource;   // picture source
-  var destinationType; // sets the format of returned value
-  var url;
+  var destinationType;
+  var sourceTypeCam;
+  var sourceTypeLoad;
 
   // on DeviceReady check if already logged in (in our case CODE saved)
   ionic.Platform.ready(function() {
     //console.log("ready get camera types");
-    if (!navigator.camera)
-      {
-      // error handling
+    if (!navigator.camera){
       return;
-      }
-    //pictureSource=navigator.camera.PictureSourceType.PHOTOLIBRARY;
-    pictureSource=navigator.camera.PictureSourceType.CAMERA;
-    destinationType=navigator.camera.DestinationType.FILE_URI;
+    }
+    destinationType = navigator.camera.DestinationType.FILE_URI;
+    sourceTypeCam = navigator.camera.PictureSourceType.CAMERA;
+    sourceTypeLoad = navigator.camera.PictureSourceType.PHOTOLIBRARY
     });
 
   // get upload URL for FORM
@@ -366,10 +363,21 @@ angular.module('starter.controllers', ['starter.services'])
         //console.log("got upload url ", $scope.data.uploadurl);
     });
 
-    $scope.options = {
-        quality: 25,
+    $scope.optionsCam = {
+        quality: 100,
         destinationType: destinationType,
-        sourceType: pictureSource,
+        targetWidth: 800,
+        targetHeight: 600,
+        sourceType: sourceTypeCam,
+        encodingType: 0,
+        saveToPhotoAlbum: true
+    };
+    $scope.optionsLoad = {
+        quality: 50,
+        destinationType: destinationType,
+        targetWidth: 800,
+        targetHeight: 600,
+        sourceType: sourceTypeLoad,
         encodingType: 0,
         saveToPhotoAlbum: true
     };
@@ -377,38 +385,9 @@ angular.module('starter.controllers', ['starter.services'])
         camService.getPicture(options).then(function(picture){
             console.log("Photo", picture);
             $scope.myPicture = picture;
+
         }, function(err){
             console.err(err);
         });
     }
-
-  // do POST on upload url form by http / html form
-    $scope.update = function() {
-        if (!$scope.cameraData.uploadurl){
-            // error handling no upload url
-            return;
-        }
-        if (!$scope.mypicture){
-            // error handling no picture given
-            return;
-        }
-        var options = new FileUploadOptions();
-        options.fileKey="ffile";
-        options.fileName=$scope.mypicture.substr($scope.mypicture.lastIndexOf('/')+1);
-        options.mimeType="image/jpeg";
-        var params = {};
-        //params.other = obj.text; // some other POST fields
-        options.params = params;
-
-        //console.log("new imp: prepare upload now");
-        var ft = new FileTransfer();
-        ft.upload($scope.mypicture, encodeURI($scope.cameraData.uploadurl), uploadSuccess, uploadError, options);
-        function uploadSuccess(r) {
-            // handle success like a message to the user
-        }
-        function uploadError(error) {
-            //console.log("upload error source " + error.source);
-            //console.log("upload error target " + error.target);
-        }
-    };
 });
