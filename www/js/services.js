@@ -22,9 +22,11 @@ function camService($q){
     }
     function getPicture(options){
         var q = $q.defer();
+        if(navigator.camera !== undefined)
         navigator.camera.getPicture(function(result){
             q.resolve(result);
         }, function(err){
+
             q.reject(err);
         }, options);
 

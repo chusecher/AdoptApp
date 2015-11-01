@@ -111,7 +111,6 @@ angular.module('starter.controllers', ['starter.services'])
         store.set('refreshToken', refreshToken);
 
         appDB.getUser(auth.profile.user_id).then(function(doc){
-            console.log(JSON.stringify(doc));
             if(doc.status === 404){
                 console.log("Usuario nuevo");
                 var user = {
@@ -358,7 +357,7 @@ angular.module('starter.controllers', ['starter.services'])
         //console.log("got upload url ", $scope.data.uploadurl);
     });
 
-    var options = {
+    $scope.options = {
         quality: 50,
         destinationType: destinationType,
         sourceType: pictureSource,

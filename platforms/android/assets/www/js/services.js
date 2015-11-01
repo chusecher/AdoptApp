@@ -1,33 +1,9 @@
 angular.module('starter.services', [])
 
 // get upload url for file transfer (upload to http post service)
-/*
-.factory('LoginService', function($q) {
-    return {
-        loginUser: function(name, pw) {
-            var deferred = $q.defer();
-            var promise = deferred.promise;
 
-            if (name == 'user' && pw == 'secret') {
-                deferred.resolve('¡Bienvenido ' + name + '!');
-            } else {
-                deferred.reject('Datos incorrectos');
-            }
-            promise.success = function(fn) {
-                promise.then(fn);
-                return promise;
-            }
-            promise.error = function(fn) {
-                promise.then(null, fn);
-                return promise;
-            }
-            return promise;
-        }
-    }
-})
-*/
 .factory('GetUU', function() {
-    var uploadurl = "http://localhost/upl";
+    var uploadurl = "http://localhost:8100/upl";
     return  {
         query: function() {
             return uploadurl;
@@ -37,7 +13,26 @@ angular.module('starter.services', [])
 
 .factory('appDB', ['$q', dbService])
 .factory('authService', ['$q', '$http', 'auth', authService])
-.factory('utilService', [utilService]);
+.factory('utilService', [utilService])
+.factory('camService', ['$q', camService]);
+
+function camService($q){
+    return{
+        getPicture: getPicture
+    }
+    function getPicture(options){
+        var q = $q.defer();
+        if(navigator.camera !== undefined)
+        navigator.camera.getPicture(function(result){
+            q.resolve(result);
+        }, function(err){
+
+            q.reject(err);
+        }, options);
+
+        return q.promise;
+    }
+}
 
 function utilService(){
     return{
@@ -102,14 +97,26 @@ function dbService($q){
     	addPublication: addPublication,
         getPublication: getPublication,
         getUser: getUser,
-        addUser: addUser
+        addUser: addUser,
+        getAttachment: getAttachment
     };
 
     function initDB(){
-        localdb = new PouchDB('adoptappdb');
-    	remoteCouch = 'https://adoptapp.smileupps.com/adoptappdb';
-        db = new PouchDB(remoteCouch);
+        db = new PouchDB('adoptappdb');
+        remotedb = new PouchDB('https://adoptapp.smileupps.com/adoptappdb');
 
+        db.sync(remotedb, {
+          live: true,
+          retry: true
+        }).on('change', function (change) {
+          // yo, something changed!
+        }).on('paused', function (info) {
+          // replication was paused, usually because of a lost connection
+        }).on('active', function (info) {
+          // replication was resumed
+        }).on('error', function (err) {
+          // totally unhandled error (shouldn't happen)
+        });
 
         var typeIndex = {
             _id: '_design/type_index',
@@ -130,10 +137,14 @@ function dbService($q){
         };
 
         db.put(typeIndex).then(function(){
-            console.log('Indice agregado');
-        }).catch(function(err){})
+            console.log('Índice agregado');
+        }).catch(function(err){
+            if(err.status === 409){
+                console.log('Índice existente')
+            }
+        })
 
-        PouchDB.sync(localdb, db, {live: true});
+        //PouchDB.sync(db, localdb, {live: true});
 
         db.query('type_index/animal', {limit: 0}).then(function (res) {
             // index was built!
@@ -144,9 +155,8 @@ function dbService($q){
     };
 
     function getPublications(){
-        console.log('Obteniendo Publicaciones')
     	if(!publications){
-            return $q.when(db.query('type_index/animal', {descending: true}).then(function(docs){
+            return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
                 publications = docs.rows.map(function(row){
                     row.value._id = new Date(row.value._id);
                     row.value.expirationDate = new Date(row.value.expirationDate);
@@ -154,29 +164,11 @@ function dbService($q){
                     return row.value;
                 });
 
-                db.changes({live: true, since: 'now', include_docs: true})
+                db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
                     .on('change', onDatabaseChange);
 
                 return publications;
                 }));
-            /*
-    		return $q.when(db.allDocs({include_docs: true, descending: true}))
-    			.then(function(docs){
-    				publications = docs.rows.map(function(row){
-    					row.doc._id = new Date(row.doc._id);
-      					row.doc.expirationDate = new Date(row.doc.expirationDate);
-
-                        console.log(row.doc.type);
-
-      					return row.doc;
-    				});
-
-    				db.changes({live: true, since: 'now', include_docs: true})
-    					.on('change', onDatabaseChange);
-
-    				return publications;
-    			});
-            */
     	}else{
     		return $q.when(publications);
     	}
@@ -198,16 +190,21 @@ function dbService($q){
         }));
     }
     function getUser(userID){
-        return db.get(userID).catch(function (err) {
+        return $q.when(db.get(userID).catch(function (err) {
             return err;
         }).then(function(doc){
             return doc;
-        });
+        }));
+    }
+    function getAttachment(pubID){
+        return $q.when(db.getAttachment(pubID, 'pubImage').then(function(attach){
+            return attach;
+        }));
     }
     function getPublication(publicationID){
-        return db.get(publicationID).then(function (doc) {
+        return $q.when(db.get(publicationID, {attachments: true}).then(function (doc) {
             return doc;
-        });
+        }));
     }
     function onDatabaseChange(change) {
 	    var index = findIndex(publications, change.id);

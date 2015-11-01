@@ -23,15 +23,44 @@ angular.module('starter.controllers', ['starter.services'])
   ];
 })
 
-.controller('MyProfileCtrl', function($scope, auth, appDB) {
+.controller('MyProfileCtrl', function($scope, $state, $ionicPopup, auth, appDB, $ionicHistory) {
     appDB.initDB();
     $scope.activeUser;
     $scope.auth = auth;
+    $scope.newData = {
+        phone: ''
+    }
 
     appDB.getUser(auth.profile.user_id).then(function(user){
         $scope.activeUser = user;
         console.log(user.rating);
     });
+    $scope.updateUser = function(phone){
+        var user = {
+            _id: auth.profile.user_id,
+            _rev: $scope.activeUser._rev,
+            phone: phone,
+            rating: 0,
+            type: 'user',
+            status: 'OK'
+        }
+        appDB.addUser(user).then(function(){
+          var alertPopup = $ionicPopup.alert({
+              title: '¡Actualización Exitosa!',
+              template: 'Tus datos han sido actualizados con éxito'
+          });
+          $ionicHistory.nextViewOptions({
+              disableBack: true
+          });
+          $state.go('app.news', {}, {reload: true});
+        }, function(err){
+            console.log(JSON.stringify(err))
+          var alertPopup = $ionicPopup.alert({
+              title: 'Actualización Fallida',
+              template: 'Ha ocurrido un problema con tu actualización'
+          });
+        });
+    }
 })
 
 .controller('RegisCtrl', function($scope, $ionicPopup, appDB, $http) {
@@ -82,12 +111,11 @@ angular.module('starter.controllers', ['starter.services'])
         store.set('refreshToken', refreshToken);
 
         appDB.getUser(auth.profile.user_id).then(function(doc){
-            console.log(JSON.stringify(doc));
             if(doc.status === 404){
                 console.log("Usuario nuevo");
                 var user = {
                     _id : auth.profile.user_id,
-                    phone: '',
+                    phone: 'Escribe un número para que puedan contactarte',
                     rating: 0,
                     type: 'user',
                     status: 'OK'
@@ -123,59 +151,67 @@ angular.module('starter.controllers', ['starter.services'])
 //    }
 })
 
-.controller('PubsCtrl', function($scope, $state, $cordovaGeolocation, appDB, authService, utilService, $cordovaSocialSharing){
-  $scope.docs;
-  $scope.showID;
-
+.controller('PubsCtrl', function($scope, $q, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
   appDB.initDB();
   pubs = appDB.getPublications();
-  pubs.then(function(docs) {
+  $q.when(pubs.then(function(docs) {
       for(var i in docs){
           (function (i){
-              $scope.getReporter(docs[i].reporter).then(function(data){
+              appDB.getAttachment(docs[i]._id).then(function(blob){
+                  docs[i].pubImage = URL.createObjectURL(blob);
+                  return docs[i];
+              });
+              getReporter(docs[i].reporter).then(function(data){
                   docs[i].reporterData = data;
-                  $scope.showID = utilService.stringDate(new Date(docs[i]._id));
+                  docs[i].showID = utilService.stringDate(new Date(docs[i]._id));
                   return docs[i];
               });
           })(i);
       }
       $scope.docs = docs;
-      //console.log(JSON.stringify($scope.docs))
-  });
-  $scope.getReporter = function(reporterID){
+  }));
+  getReporter = function(reporterID){
       return authService.callUser(reporterID).then(function(reporter){
           return reporter.data;
       });
   }
-  $scope.socialShare = function(messages, subject, image, url){
-      console.log("Sharing");
-      $cordovaSocialSharing.share(messages, subject, image, url);
-  }
 
+  $scope.fbShare = function (message) {
+      var ids = auth.profile.identities;
+      var isFB = false;
+      var id = 0;
+      for(var id in ids){
+          if(ids[id].provider === 'facebook'){isFB = true};
+      }
+      if(!isFB){
+          console.log("No está conectado con facebook");
+          return;
+      }
+      console.log("Trying to share");
+      var toky = auth.profile.identities[id].access_token;
 
-  $scope.cards = [
-    {id: 1, date: 'Ayer'            , description:'Encontré este perrito debajo de un puente. Ya lo vacuné y quiero que alguien lo cuide porque económicamente no puedo.', breed: 'Beagle', photo: 'img/beagle1.jpg', reporter: 'Mateo Nieto',userPhoto: 'img/test-photo.jpg'},
-    {id: 2, date: '10 de Octubre'   , description:'Una mamá pincher dió a luz a cachorritos y están todos disponibles para adopción.', breed: 'Pincher', photo: 'img/pincher1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
-    {id: 3, date: '30 de Septiembre', description:'Ya no tengo los medios para mantener a mi gato. Si alguien lo quiere cuidar.', breed: 'Snowshoe', photo: 'img/snowshoe1.jpg', reporter: 'Carlos Useche',userPhoto: 'img/test-photo2.jpg'},
-    {id: 4, date: '29 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Pastor Alemán', photo: 'img/perro.jpg', reporter: 'Pepito1'},
-    {id: 5, date: '15 de Septiembre', description:'asasssa sas sa   as as ablablablabal', breed: 'Persa', photo: 'img/perro.jpg', reporter: 'Pepito1'}
-  ];
-/*
-  var publication = {
-      _id: id.toISOString(),
-      expirationDate: exp.toISOString(),
-      reporter: reporter,
-      adopter: [],
-      description: description,
-      size: size,
-      breed: breed,
-      name: name,
-      state: 'ACTIVE',
-      type: 'animal'
-  }*/
+      console.log("Token",toky);
+
+      ngFB.init({appId: '199784313686540', accessToken: toky});
+      ngFB.api({
+          method: 'POST',
+          path: '/me/feed',
+          params: {
+              message: message
+          }
+      }).then(
+          function () {
+              console.log("Nice");
+              alert('Se ha compartido satisfactoriamente');
+          },
+          function (err) {
+              console.log("Tabarnacle", JSON.stringify(err));
+              alert('Un error ocurrió al compartir en Facebook');
+          });
+  };
 })
 
-.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService) {
+.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService, utilService) {
 
 	$ionicModal.fromTemplateUrl('templates/publication.html', {
 		scope: $scope,
@@ -201,6 +237,11 @@ angular.module('starter.controllers', ['starter.services'])
 
   $scope.openPub = function(pubId) {
     appDB.getPublication(pubId).then(function(pub){
+        pub.showID = utilService.stringDate(new Date(pub._id));
+        console.log(pub.showID);
+        blobUtil.base64StringToBlob(pub._attachments.pubImage.data).then(function(blob){
+            $scope.pubImageURL = URL.createObjectURL(blob);
+        })
         authService.callUser(pub.reporter).then(function(reporter){
             $scope.reporter = reporter.data;
         });
@@ -224,12 +265,14 @@ angular.module('starter.controllers', ['starter.services'])
   };
 })
 
-.controller('PublishCtrl', function($scope, $state, $location, $cordovaGeolocation, $ionicPopup, GetUU, appDB, auth) {
-  appDB.initDB();
-  $scope.pub={
-    size: 2,
-    reporter: auth.profile.user_id
-  }
+.controller('PublishCtrl', function($scope, $state, $location, $cordovaGeolocation, $ionicHistory,
+                                    $ionicPopup, GetUU, appDB, auth, camService) {
+    appDB.initDB();
+    $scope.pub = {
+        breed: "Akita",
+        size: 2,
+        reporter: auth.profile.user_id
+    }
 
   var options = {timeout: 10000, enableHighAccuracy: true};
   $cordovaGeolocation.getCurrentPosition(options).then(function(position){
@@ -239,42 +282,57 @@ angular.module('starter.controllers', ['starter.services'])
   }, function(error){
 		console.log("Could not get location");
   });
-  $scope.createPub = function(reporter, breed, size, description, name, pos){
-  	console.log('Creating register', reporter, breed, size, description, name, pos);
-    var id = new Date();
-    id.setHours(id.getHours()-5);
-    var exp = new Date(id);
-    exp.setDate(id.getDate()+30)
-    var publication= {
-      _id: id.toISOString(),
-      expirationDate: exp.toISOString(),
-      reporter: reporter,
-      adopter: [],
-      description: description,
-      size: size,
-      breed: breed,
-      name: name,
-      state: 'ACTIVE',
-      type: 'animal',
-      location: pos
-    }
-    appDB.addPublication(publication).then(function(){
-        var alertPopup = $ionicPopup.alert({
-          title: '¡Publicación Exitosa!',
-          template: '´Tu publicación ha sido registrada con éxito'
-        });
-        state.go('app.news');
-      }, function(err){
-        var alertPopup = $ionicPopup.alert({
-          title: 'Publicación Fallida',
-          template: 'Ha ocurrido un problema'
-        });
-        state.go('app.news');
-      });
+  $scope.createPub = function(reporter, breed, size, description, name, pos, imageSrc){
+  	console.log('Creating register', reporter, breed, size, description, name, pos, imageSrc);
+    console.log("SRC", imageSrc);
+
+    blobUtil.imgSrcToBlob(imageSrc).then(function(blob){
+        var id = new Date();
+        id.setHours(id.getHours()-5);
+        var exp = new Date(id);
+        exp.setDate(id.getDate()+30)
+        var publication= {
+          _id: id.toISOString(),
+          expirationDate: exp.toISOString(),
+          reporter: reporter,
+          adopter: [],
+          description: description,
+          size: size,
+          breed: breed,
+          name: name,
+          state: 'ACTIVE',
+          type: 'animal',
+          location: pos,
+          _attachments:{
+              'pubImage': {
+                  content_type: 'image/jpg',
+                  data: blob
+              }
+          }
+        }
+        appDB.addPublication(publication).then(function(){
+            var alertPopup = $ionicPopup.alert({
+              title: '¡Publicación Exitosa!',
+              template: '´Tu publicación ha sido registrada con éxito'
+            });
+            $ionicHistory.nextViewOptions({
+                disableBack: true
+            });
+            $state.go('app.news', {}, {reload: true});
+          }, function(err){
+              console.log(JSON.stringify(err));
+            var alertPopup = $ionicPopup.alert({
+              title: 'Publicación Fallida',
+              template: 'Ha ocurrido un problema'
+            });
+          });
+        console.log(JSON.stringify(publication));
+    });
   }
   //----------------------CAMERA---------------------
   // init variables
-  $scope.data = {};
+  $scope.myPicture = "img/profile_default_pet.jpg";
+  $scope.cameraData = {};
   $scope.obj;
   var pictureSource;   // picture source
   var destinationType; // sets the format of returned value
@@ -294,66 +352,54 @@ angular.module('starter.controllers', ['starter.services'])
     });
 
   // get upload URL for FORM
-  GetUU.query(function(response) {
-    $scope.data = response;
-    //console.log("got upload url ", $scope.data.uploadurl);
+    GetUU.query(function(response) {
+        $scope.cameraData = response;
+        //console.log("got upload url ", $scope.data.uploadurl);
     });
 
-  // take picture
-  $scope.takePicture = function() {
-    console.log("got camera button click");
-    var options =   {
-      quality: 50,
-      destinationType: destinationType,
-      sourceType: pictureSource,
-      encodingType: 0,
-      saveToPhotoAlbum: true
-      };
-    if (!navigator.camera){
-        console.log("error de camera, no hay camara");
-        return;
-      }
-    navigator.camera.getPicture(
-      function (imageURI) {
-        console.log("got camera success ", imageURI);
-        $scope.mypicture = imageURI;
-        },
-      function (err) {
-        //console.log("got camera error ", err);
-        // error handling camera plugin
-        },
-      options);
+    $scope.options = {
+        quality: 50,
+        destinationType: destinationType,
+        sourceType: pictureSource,
+        encodingType: 0,
+        saveToPhotoAlbum: true
     };
+    $scope.getPicture = function(options){
+        camService.getPicture(options).then(function(picture){
+            console.log("Photo", picture);
+            $scope.myPicture = picture;
+        }, function(err){
+            console.err(err);
+        });
+    }
 
   // do POST on upload url form by http / html form
-  $scope.update = function(obj) {
-    if (!$scope.data.uploadurl)
-      {
-      // error handling no upload url
-      return;
-      }
-    if (!$scope.mypicture)
-      {
-      // error handling no picture given
-      return;
-      }
-    var options = new FileUploadOptions();
-    options.fileKey="ffile";
-    options.fileName=$scope.mypicture.substr($scope.mypicture.lastIndexOf('/')+1);
-    options.mimeType="image/jpeg";
-    var params = {};
-    params.other = obj.text; // some other POST fields
-    options.params = params;
+    $scope.update = function(obj) {
+        if (!$scope.cameraData.uploadurl){
+            // error handling no upload url
+            return;
+        }
+        if (!$scope.mypicture){
+            // error handling no picture given
+            return;
+        }
+        var options = new FileUploadOptions();
+        options.fileKey="ffile";
+        options.fileName=$scope.mypicture.substr($scope.mypicture.lastIndexOf('/')+1);
+        options.mimeType="image/jpeg";
+        var params = {};
+        params.other = obj.text; // some other POST fields
+        options.params = params;
 
-    //console.log("new imp: prepare upload now");
-    var ft = new FileTransfer();
-    ft.upload($scope.mypicture, encodeURI($scope.data.uploadurl), uploadSuccess, uploadError, options);
-    function uploadSuccess(r) {
-      // handle success like a message to the user
-      }
-    function uploadError(error) {
-      //console.log("upload error source " + error.source);
-      //console.log("upload error target " + error.target);
-      }
+        //console.log("new imp: prepare upload now");
+        var ft = new FileTransfer();
+        ft.upload($scope.mypicture, encodeURI($scope.cameraData.uploadurl), uploadSuccess, uploadError, options);
+        function uploadSuccess(r) {
+            // handle success like a message to the user
+        }
+        function uploadError(error) {
+            //console.log("upload error source " + error.source);
+            //console.log("upload error target " + error.target);
+        }
     };
 });
