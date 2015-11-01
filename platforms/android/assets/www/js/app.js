@@ -7,7 +7,8 @@
 angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
                             'auth0', 'angular-storage', 'starter.services', 'angular-jwt','ngOpenFB'])
 
-.run(function($ionicPlatform, $rootScope, auth, store, jwtHelper, $location, ngFB) {
+.run(function($ionicPlatform,$animate, $rootScope, auth, store, jwtHelper, $location, ngFB) {
+    $animate.enabled(false);
 
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -51,7 +52,10 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
   });
 })
 
-.config(function($stateProvider, $urlRouterProvider, authProvider, $httpProvider, jwtInterceptorProvider) {
+.config(function($stateProvider, $ionicConfigProvider, $urlRouterProvider, authProvider, $httpProvider, jwtInterceptorProvider) {
+    if (ionic.Platform.isAndroid()) {
+        $ionicConfigProvider.scrolling.jsScrolling(false);
+    }
   $stateProvider
   .state('login', {
         url: '/login',
