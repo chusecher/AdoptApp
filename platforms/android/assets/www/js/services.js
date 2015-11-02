@@ -2,19 +2,20 @@ angular.module('starter.services', [])
 
 // get upload url for file transfer (upload to http post service)
 
-.factory('GetUU', function() {
+.factory('GetUU', [GetUU])
+.factory('appDB', ['$q', dbService])
+.factory('authService', ['$q', '$http', 'auth', authService])
+.factory('utilService', [utilService])
+.factory('camService', ['$q', camService]);
+
+function GetUU() {
     var uploadurl = "http://localhost:8100/upl";
     return  {
         query: function() {
             return uploadurl;
         }
     }
-})
-
-.factory('appDB', ['$q', dbService])
-.factory('authService', ['$q', '$http', 'auth', authService])
-.factory('utilService', [utilService])
-.factory('camService', ['$q', camService]);
+}
 
 function camService($q){
     return{
@@ -50,7 +51,7 @@ function utilService(){
           anio = fecha_actual.getFullYear();
 
           var fechaHora = date;
-          var horas = fechaHora.getHours()+offset;//GMT
+          var horas = fechaHora.getHours();//GMT
           var minutos = fechaHora.getMinutes();
           var segundos = fechaHora.getSeconds();
           var sufijo = 'AM';
@@ -98,13 +99,16 @@ function dbService($q){
         getPublication: getPublication,
         getUser: getUser,
         addUser: addUser,
-        getAttachment: getAttachment
+        getAttachment: getAttachment,
+        filterBySize: filterBySize,
+        filterByBreed: filterByBreed
     };
 
     function initDB(){
         //db = new PouchDB('adoptappdb');
-        db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb');
-/*
+        //var PouchDB = require('pouchdb').plugin(require('pouchdb-find'));
+        db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb', {auth: {username: 'admin', password: 'be82218489b1'}});
+/*      
         db.sync(remotedb, {
           live: true,
           retry: true
@@ -143,37 +147,68 @@ function dbService($q){
                 console.log('Índice existente')
             }
         })
-
-        //PouchDB.sync(db, localdb, {live: true});
-
         db.query('type_index/animal', {limit: 0}).then(function (res) {
             // index was built!
         }).catch(function (err) {
             // some error
         });
-
     };
 
     function getPublications(){
-    	if(!publications){
-            return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
-                publications = docs.rows.map(function(row){
-                    row.value._id = new Date(row.value._id);
-                    row.value.expirationDate = new Date(row.value.expirationDate);
+    	//if(!publications){
+        return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
+            publications = docs.rows.map(function(row){
+                row.value._id = new Date(row.value._id);
+                row.value.expirationDate = new Date(row.value.expirationDate);
 
-                    return row.value;
-                });
+                return row.value;
+            });
 
-                db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
-                    .on('change', onDatabaseChange);
+            db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
+                .on('change', onDatabaseChange);
 
-                return publications;
-                }));
-    	}else{
-    		return $q.when(publications);
-    	}
+            return publications;
+            }));
+    	//}else{
+    	//	return $q.when(publications);
+    	//}
 
     };
+
+    function filterByBreed(value){
+        return $q.when(db.query(function (doc) {
+            emit(doc.breed);
+        }, {key: value, include_docs:true}).then(function (result) {
+            var docs = result.rows.map(function(row){
+                row.doc._id = new Date(row.doc._id);
+                row.doc.expirationDate = new Date(row.doc.expirationDate);
+
+                return row.doc;
+            });
+
+            return docs;
+        }).catch(function (err) {
+            return err
+            console.log('Breed filter error', JSON.stringify(err))
+        }));
+    }
+
+    function filterBySize(value){
+        return $q.when(db.query(function (doc) {
+            emit(doc.size);
+        }, {key: value, include_docs:true}).then(function (result) {
+            var docs = result.rows.map(function(row){
+                row.doc._id = new Date(row.doc._id);
+                row.doc.expirationDate = new Date(row.doc.expirationDate);
+
+                return row.doc;
+            });
+            return docs;
+        }).catch(function (err) {
+            return err;
+            console.log('Size filter error', JSON.stringify(err))
+        }));
+    }
 
     function addPublication(publication){
     	return $q.when(db.put(publication, function callback(err, result) {

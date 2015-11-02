@@ -63,8 +63,6 @@
                     <option ng-selected="selected">Otro</option>
                 </select>
             </label>
-        </div>
-        <div class="list list-inset">
             <div class="item item-divider">
                 <label class="toggle">
                     <input type="checkbox" ng-model="search.bySize">
@@ -84,19 +82,15 @@
                 </div>
             </div>
         </div>
-        <div class="list list-inset">
-            <div class="button-bar bar-royal">
-                <a class="button" ng-click="filter(search.breed, search.size)">Buscar</a>
-            </div>
+        <div class="button-bar bar-royal padding">
+            <a class="button" ng-click="filter(search.breed, search.size)">Buscar</a>
         </div>
-        <div class="item item-divider">
-            Resultados: {{foundDocs.length}}
-        </div>
+        {{foundDocs.length}}
         <div ng-repeat="card in foundDocs">
             <div class="list card">
                 <div class="item item-avatar">
                     <img src="{{card.reporterData.picture}}">
-                    <h2>{{card.reporterData.nickname}}</h2>
+                    <h3>{{card.reporterData.nickname}}</h3>
                 </div>
                 <div class="item item-image">
                     <img class="full-image" src="{{card.pubImage}}"/>
