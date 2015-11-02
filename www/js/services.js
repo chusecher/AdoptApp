@@ -101,14 +101,15 @@ function dbService($q){
         addUser: addUser,
         getAttachment: getAttachment,
         filterBySize: filterBySize,
-        filterByBreed: filterByBreed
+        filterByBreed: filterByBreed,
+        filterByReporter: filterByReporter
     };
 
     function initDB(){
         //db = new PouchDB('adoptappdb');
         //var PouchDB = require('pouchdb').plugin(require('pouchdb-find'));
         db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb', {auth: {username: 'admin', password: 'be82218489b1'}});
-/*      
+/*
         db.sync(remotedb, {
           live: true,
           retry: true
@@ -196,6 +197,23 @@ function dbService($q){
     function filterBySize(value){
         return $q.when(db.query(function (doc) {
             emit(doc.size);
+        }, {key: value, include_docs:true}).then(function (result) {
+            var docs = result.rows.map(function(row){
+                row.doc._id = new Date(row.doc._id);
+                row.doc.expirationDate = new Date(row.doc.expirationDate);
+
+                return row.doc;
+            });
+            return docs;
+        }).catch(function (err) {
+            return err;
+            console.log('Size filter error', JSON.stringify(err))
+        }));
+    }
+
+    function filterByReporter(value){
+        return $q.when(db.query(function (doc) {
+            emit(doc.reporter);
         }, {key: value, include_docs:true}).then(function (result) {
             var docs = result.rows.map(function(row){
                 row.doc._id = new Date(row.doc._id);

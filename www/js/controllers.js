@@ -12,7 +12,7 @@ angular.module('starter.controllers', ['starter.services'])
   appDB.initDB();
 })
 
-.controller('MyProfileCtrl', function($scope, $state, $ionicPopup, auth, appDB, $ionicHistory) {
+.controller('MyProfileCtrl', function($scope, $state, $ionicPopup, auth, appDB, $ionicHistory, $q, authService, utilService) {
     appDB.initDB();
     $scope.activeUser;
     $scope.auth = auth;
@@ -24,6 +24,31 @@ angular.module('starter.controllers', ['starter.services'])
         $scope.activeUser = user;
         console.log(user.rating);
     });
+
+    console.log("I am: ", auth.profile.user_id);
+    appDB.filterByReporter( auth.profile.user_id).then(function(filtereds){
+        for(var i in filtereds){
+            (function (i){
+                appDB.getAttachment(filtereds[i]._id).then(function(blob){
+                    filtereds[i].pubImage = URL.createObjectURL(blob);
+                    return filtereds[i];
+              });
+                getReporter(filtereds[i].reporter).then(function(data){
+                    filtereds[i].reporterData = data;
+                    filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
+                    return filtereds[i];
+                });
+            })(i);
+        }
+        $scope.foundDocs = filtereds;
+    });
+
+    getReporter = function(reporterID){
+        return $q.when(authService.callUser(reporterID).then(function(reporter){
+            return reporter.data;
+        }));
+    }
+
     $scope.updateUser = function(phone){
         var user = {
             _id: auth.profile.user_id,
@@ -114,7 +139,7 @@ angular.module('starter.controllers', ['starter.services'])
 })
 
 .controller('PubsCtrl', function($scope, $q, $ionicPopup, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
-  
+
   getReporter = function(reporterID){
       return $q.when(authService.callUser(reporterID).then(function(reporter){
           return reporter.data;
@@ -251,15 +276,15 @@ angular.module('starter.controllers', ['starter.services'])
             var refiltereds = []
             for(var i=0; i<filtereds.length; i++){
                 if(filtereds[i].size === size){
-                    
+
                     refiltereds.push(filtereds[i])
                 }
             }
             filtereds = refiltereds;
             for(var i in filtereds){
-                
+
                 (function (i){
-                
+
                     appDB.getAttachment(filtereds[i]._id).then(function(blob){
                         filtereds[i].pubImage = URL.createObjectURL(blob);
                         return filtereds[i];
