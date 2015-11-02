@@ -101,14 +101,15 @@ function dbService($q){
         addUser: addUser,
         getAttachment: getAttachment,
         filterBySize: filterBySize,
-        filterByBreed: filterByBreed
+        filterByBreed: filterByBreed,
+        filterByReporter: filterByReporter
     };
 
     function initDB(){
         //db = new PouchDB('adoptappdb');
         //var PouchDB = require('pouchdb').plugin(require('pouchdb-find'));
         db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb', {auth: {username: 'admin', password: 'be82218489b1'}});
-/*      
+/*
         db.sync(remotedb, {
           live: true,
           retry: true
@@ -154,21 +155,37 @@ function dbService($q){
         });
     };
 
-    function getPublications(){
+    function getPublications(all){
     	//if(!publications){
-        return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
-            publications = docs.rows.map(function(row){
-                row.value._id = new Date(row.value._id);
-                row.value.expirationDate = new Date(row.value.expirationDate);
+        if(!all){
+            return $q.when(db.query('type_index/animal', {descending: true, attachments: true, limit: 10}).then(function(docs){
+                publications = docs.rows.map(function(row){
+                    row.value._id = new Date(row.value._id);
+                    row.value.expirationDate = new Date(row.value.expirationDate);
 
-                return row.value;
-            });
+                    return row.value;
+                });
 
-            db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
-                .on('change', onDatabaseChange);
+                db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
+                    .on('change', onDatabaseChange);
 
-            return publications;
-            }));
+                return publications;
+                }));
+        }else{
+            return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
+                publications = docs.rows.map(function(row){
+                    row.value._id = new Date(row.value._id);
+                    row.value.expirationDate = new Date(row.value.expirationDate);
+
+                    return row.value;
+                });
+
+                db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
+                    .on('change', onDatabaseChange);
+
+                return publications;
+                }));
+        }
     	//}else{
     	//	return $q.when(publications);
     	//}
@@ -196,6 +213,23 @@ function dbService($q){
     function filterBySize(value){
         return $q.when(db.query(function (doc) {
             emit(doc.size);
+        }, {key: value, include_docs:true}).then(function (result) {
+            var docs = result.rows.map(function(row){
+                row.doc._id = new Date(row.doc._id);
+                row.doc.expirationDate = new Date(row.doc.expirationDate);
+
+                return row.doc;
+            });
+            return docs;
+        }).catch(function (err) {
+            return err;
+            console.log('Size filter error', JSON.stringify(err))
+        }));
+    }
+
+    function filterByReporter(value){
+        return $q.when(db.query(function (doc) {
+            emit(doc.reporter);
         }, {key: value, include_docs:true}).then(function (result) {
             var docs = result.rows.map(function(row){
                 row.doc._id = new Date(row.doc._id);

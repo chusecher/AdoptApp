@@ -30,25 +30,22 @@
                 <span class="badge badge-assertive">{{activeUser.rating}}%</span>
             </div>
         </div>
-        <div class="list list-inset">
-            <div class="item item-divider">
-                Conexiones
-            </div>
-            <div class="item item-icon-left" href="#">
-                <i class="icon ion-social-twitter"></i>
-                Twitter
-                <span class="item-note">@mateonietod</span>
-            </div>
-            <div class="item item-icon-left" href="#">
-                <i class="icon ion-social-facebook"></i>
-                Facebook
-                <span class="item-note">Mateo Nieto</span>
-            </div>
-        </div>
-        <div class="padding">
             <button class="button button-block button-positive" ng-click="updateUser(newData.phone)">
                 Aplicar Cambios
             </button>
+        <div class="list list-inset">
+            <div class="item item-divider">
+                Mis Publicaciones
+            </div>
+            <div ng-repeat="card in foundDocs">
+                <div class="list">
+                    <a class="item item-avatar" href="#">
+                        <img src="{{card.pubImage}}">
+                        <h2>{{card.name}}</h2>
+                        <p>{{card.breed}}</p>
+                    </a>
+                </div>
+            </div>
         </div>
     </ion-content>
 </ion-view>

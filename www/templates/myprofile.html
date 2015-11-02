@@ -1,4 +1,4 @@
-<ion-view view-title="Mi Perfil">
+<ion-view view-title="Mi Perfil" ng-controller="PubCtrl">
     <ion-content>
         <!--<div class="bar bar-header bar-balanced">
             <h1 class="title">mi-nombre</h1>
@@ -29,38 +29,23 @@
                 Rating
                 <span class="badge badge-assertive">{{activeUser.rating}}%</span>
             </div>
-        </div>
-        <div class="list list-inset">
-            <div class="item item-divider">
-                Conexiones
-            </div>
-            <div class="item item-icon-left" href="#">
-                <i class="icon ion-social-twitter"></i>
-                Twitter
-                <span class="item-note">@mateonietod</span>
-            </div>
-            <div class="item item-icon-left" href="#">
-                <i class="icon ion-social-facebook"></i>
-                Facebook
-                <span class="item-note">Mateo Nieto</span>
-            </div>
-        </div>
-        <div class="padding">
             <button class="button button-block button-positive" ng-click="updateUser(newData.phone)">
                 Aplicar Cambios
             </button>
         </div>
 
-        <div class="item item-divider">
-            Mis Publicaciones
-        </div>
-        <div ng-repeat="card in foundDocs">
-            <div class="list">
-                <a class="item item-avatar" href="#">
-                    <img src="{{card.pubImage}}">
-                    <h2>{{card.name}}</h2>
-                    <p>{{card.breed}}</p>
-                </a>
+        <div class="list list-inset">
+            <div class="item item-divider">
+                Mis Publicaciones
+            </div>
+            <div ng-repeat="card in foundDocs">
+                <div class="list">
+                    <a class="item item-avatar" ng-click="openPub({{'card._id'}})">
+                        <img src="{{card.pubImage}}">
+                        <h2>{{card.name}}</h2>
+                        <p>{{card.breed}}</p>
+                    </a>
+                </div>
             </div>
         </div>
     </ion-content>
