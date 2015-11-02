@@ -351,7 +351,7 @@ angular.module('starter.controllers', ['starter.services'])
             $ionicHistory.nextViewOptions({
                 disableBack: true
             });
-            $state.go('app.news', {}, {reload: true});
+            $state.go('app.news');
             $scope.myPicture = defaultPic;
         }).catch(function(err){
               console.log(JSON.stringify(err));
