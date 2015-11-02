@@ -50,5 +50,18 @@
                 Aplicar Cambios
             </button>
         </div>
+
+        <div class="item item-divider">
+            Mis Publicaciones
+        </div>
+        <div ng-repeat="card in foundDocs">
+            <div class="list">
+                <a class="item item-avatar" href="#">
+                    <img src="{{card.pubImage}}">
+                    <h2>{{card.name}}</h2>
+                    <p>{{card.breed}}</p>
+                </a>
+            </div>
+        </div>
     </ion-content>
 </ion-view>
