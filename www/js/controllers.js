@@ -139,8 +139,14 @@ angular.module('starter.controllers', ['starter.services'])
           }
           $scope.docs = docs;
           $scope.$broadcast('scroll.refreshComplete');
-          
+
       });
+  };
+
+  $scope.mySearch = function(breed){
+      console.log("Searching for: ",breed);
+      appDB.initDB();
+      appDB.getPublications(breed);
   };
 
   $scope.fbShare = function (message) {
@@ -197,11 +203,6 @@ angular.module('starter.controllers', ['starter.services'])
 	}).then(function(modal){
 		$scope.modal = modal;
 	});
-
-    $scope.mySearch = function(breed){
-        console.log("Searching for: ",breed);
-    };
-
 
   $scope.closePub = function() {
     $scope.modal.hide();
