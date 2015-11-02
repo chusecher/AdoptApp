@@ -282,11 +282,10 @@ angular.module('starter.controllers', ['starter.services'])
         size: 2,
         reporter: auth.profile.user_id
     }
-
+  var defaultPic = "img/profile_default_pet.jpg";
   var options = {timeout: 10000, enableHighAccuracy: true};
   $cordovaGeolocation.getCurrentPosition(options).then(function(position){
-
-	$scope.pub.pos = {lat: position.coords.latitude, lng: position.coords.longitude};
+    $scope.pub.pos = {lat: position.coords.latitude, lng: position.coords.longitude};
 
   }, function(error){
 		console.log("Could not get location");
@@ -328,6 +327,7 @@ angular.module('starter.controllers', ['starter.services'])
                 disableBack: true
             });
             $state.go('app.news', {}, {reload: true});
+            $scope.myPicture = defaultPic;
         }).catch(function(err){
               console.log(JSON.stringify(err));
             var alertPopup = $ionicPopup.alert({
@@ -340,7 +340,7 @@ angular.module('starter.controllers', ['starter.services'])
   }
   //----------------------CAMERA---------------------
   // init variables
-  $scope.myPicture = "img/profile_default_pet.jpg";
+  $scope.myPicture = defaultPic;
   $scope.cameraData = {};
   var destinationType;
   var sourceTypeCam;
@@ -378,15 +378,17 @@ angular.module('starter.controllers', ['starter.services'])
         targetWidth: 800,
         targetHeight: 600,
         sourceType: sourceTypeLoad,
-        encodingType: 0,
-        saveToPhotoAlbum: true
+        encodingType: 0
     };
     $scope.getPicture = function(options){
         camService.getPicture(options).then(function(picture){
             console.log("Photo", picture);
             $scope.myPicture = picture;
-
         }, function(err){
+            var alertPopup = $ionicPopup.alert({
+              title: 'Error de captura',
+              template: 'Ha ocurrido un problema: ' + JSON.stringify(err)
+            });
             console.err(err);
         });
     }

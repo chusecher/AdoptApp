@@ -2,19 +2,20 @@ angular.module('starter.services', [])
 
 // get upload url for file transfer (upload to http post service)
 
-.factory('GetUU', function() {
+.factory('GetUU', [GetUU])
+.factory('appDB', ['$q', dbService])
+.factory('authService', ['$q', '$http', 'auth', authService])
+.factory('utilService', [utilService])
+.factory('camService', ['$q', camService]);
+
+function GetUU() {
     var uploadurl = "http://localhost:8100/upl";
     return  {
         query: function() {
             return uploadurl;
         }
     }
-})
-
-.factory('appDB', ['$q', dbService])
-.factory('authService', ['$q', '$http', 'auth', authService])
-.factory('utilService', [utilService])
-.factory('camService', ['$q', camService]);
+}
 
 function camService($q){
     return{
@@ -143,9 +144,6 @@ function dbService($q){
                 console.log('Índice existente')
             }
         })
-
-        //PouchDB.sync(db, localdb, {live: true});
-
         db.query('type_index/animal', {limit: 0}).then(function (res) {
             // index was built!
         }).catch(function (err) {
