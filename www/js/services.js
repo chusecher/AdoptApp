@@ -153,7 +153,7 @@ function dbService($q){
     };
 
     function getPublications(){
-    	if(!publications){
+    	//if(!publications){
             return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
                 publications = docs.rows.map(function(row){
                     row.value._id = new Date(row.value._id);
@@ -167,9 +167,9 @@ function dbService($q){
 
                 return publications;
                 }));
-    	}else{
-    		return $q.when(publications);
-    	}
+    	//}else{
+    	//	return $q.when(publications);
+    	//}
 
     };
 

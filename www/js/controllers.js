@@ -52,36 +52,6 @@ angular.module('starter.controllers', ['starter.services'])
     }
 })
 
-.controller('RegisCtrl', function($scope, $ionicPopup, appDB, $http) {
-  appDB.initDB();
-  $scope.user = {};
-  $scope.createUser = function(email, name, lastname, phone, password){
-    var user = {
-      _id: email,
-      name: name,
-      lastname: lastname,
-      phone: phone,
-      password: password,
-      type: 'user'
-    }
-    appDB.addUser(user).then(function(){
-      var alertPopup = $ionicPopup.alert({
-          title: '¡Registro Exitoso!',
-          template: 'Te has con éxito'
-      });
-    }, function(err){
-      var alertPopup = $ionicPopup.alert({
-          title: 'Registro Fallido',
-          template: 'Ha ocurrido un problema con tu registro'
-      });
-    });
-
-  }
-})
-
-.controller('PlaylistCtrl', function($scope, $stateParams) {
-})
-
 .controller('LoginCtrl', function($scope, $location, $ionicHistory, $ionicPopup, store, auth, $state, appDB, authService) {
     appDB.initDB();
     $scope.data = {};
@@ -137,9 +107,6 @@ angular.module('starter.controllers', ['starter.services'])
             }
         });
 
-        //appDB.addUser(user).then(function(){
-        //    console.log('Registrado en appDB');
-        //}, function(err){});
     }, function(){
         //error
     });
@@ -147,36 +114,16 @@ angular.module('starter.controllers', ['starter.services'])
 })
 
 .controller('PubsCtrl', function($scope, $q, $ionicPopup, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
-  appDB.initDB();
-  pubs = appDB.getPublications();
-  $q.when(pubs.then(function(docs) {
-      for(var i in docs){
-          (function (i){
-              appDB.getAttachment(docs[i]._id).then(function(blob){
-                  docs[i].pubImage = URL.createObjectURL(blob);
-                  return docs[i];
-              });
-              getReporter(docs[i].reporter).then(function(data){
-                  docs[i].reporterData = data;
-                  docs[i].showID = utilService.stringDate(new Date(docs[i]._id));
-                  return docs[i];
-              });
-          })(i);
-      }
-      $scope.docs = docs;
-  }));
-
   getReporter = function(reporterID){
-      return authService.callUser(reporterID).then(function(reporter){
+      return $q.when(authService.callUser(reporterID).then(function(reporter){
           return reporter.data;
-      });
+      }));
   }
 
   $scope.doRefresh = function() {
-      
       appDB.initDB();
       pubs = appDB.getPublications();
-      $q.when(pubs.then(function(docs) {
+      pubs.then(function(docs) {
           for(var i in docs){
               (function (i){
                   appDB.getAttachment(docs[i]._id).then(function(blob){
@@ -191,9 +138,9 @@ angular.module('starter.controllers', ['starter.services'])
               })(i);
           }
           $scope.docs = docs;
-      }));
-      console.log("Aparently finished")
-      $scope.$broadcast('scroll.refreshComplete');
+          $scope.$broadcast('scroll.refreshComplete');
+          
+      });
   };
 
   $scope.fbShare = function (message) {
@@ -238,6 +185,8 @@ angular.module('starter.controllers', ['starter.services'])
               });
           });
   };
+
+  $scope.doRefresh();
 })
 
 .controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService, utilService) {
@@ -346,7 +295,7 @@ angular.module('starter.controllers', ['starter.services'])
         appDB.addPublication(publication).then(function(){
             var alertPopup = $ionicPopup.alert({
               title: '¡Publicación Exitosa!',
-              template: '´Tu publicación ha sido registrada con éxito'
+              template: 'Tu publicación ha sido registrada con éxito'
             });
             $ionicHistory.nextViewOptions({
                 disableBack: true
