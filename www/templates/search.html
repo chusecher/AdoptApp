@@ -1,0 +1,77 @@
+<ion-view view-title="Buscar">
+    <ion-content>
+        <div class="list list-inset">
+            <div class="item item-divider">
+                Tamaño
+            </div>
+            <label class="item item-input item-select">
+                <i class="icon ion-ios-paw placeholder-icon"></i>
+                <div class="input-label">
+                    Raza
+                </div>
+                <select ng-model="search.breed">
+                    <option>Akita</option>
+                    <option>Beagle</option>
+                    <option>Boxer</option>
+                    <option>Bulldog Inglés</option>
+                    <option>Bulldog Francés</option>
+                    <option>Bull Terrier</option>
+                    <option>Bedlington</option>
+                    <option>Bulldog Francés</option>
+                    <option>Chow Chow</option>
+                    <option>Chin</option>
+                    <option>Chihuahua</option>
+                    <option>Cimarrón</option>
+                    <option>Corgi</option>
+                    <option>Doberman</option>
+                    <option>Danés</option>
+                    <option>Dálmata</option>
+                    <option>Husky Siberiano</option>
+                    <option>Labrador</option>
+                    <option>Maltés</option>
+                    <option>Ovejero Inglés</option>
+                    <option>Pug</option>
+                    <option>Pekinés</option>
+                    <option>Poodle</option>
+                    <option>Pitbull</option>
+                    <option>Rottweiler</option>
+                    <option>Shar Pei</option>
+                    <option>Shih-Tsu</option>
+                    <option>Shiva Inu</option>
+                    <option>Schnauzer</option>
+                    <option>San Bernardo</option>
+                    <option>Terrier Irlandés</option>
+
+                    <option>Angora</option>
+                    <option>Bengala</option>
+                    <option>Burmés</option>
+                    <option>Cartrujo</option>
+                    <option>Dragon Li</option>
+                    <option>Europeo Común</option>
+                    <option>Himalaya</option>
+                    <option>Mau Egipcio</option>
+                    <option>Munchkin</option>
+                    <option>Persa</option>
+                    <option>Siamés</option>
+                    <option>Snowshoe</option>
+                    <option ng-selected="selected">Otro</option>
+                </select>
+            </label>
+            <div class="item item-divider">
+                Tamaño
+            </div>
+            <div class="item range">
+                <div class="item-conten">
+                    <img src="img/dogBig.jpg" width="15" height="15">
+                </div>
+                <input type="range" name="size" min="1" max="3" value="{{pub.size}}" ng-model="search.size">
+                <div class="item-content padding">
+                    <img src="img/dogBig.jpg" width="30" height="30">
+                </div>
+            </div>
+        </div>
+        <div class="button-bar bar-positive padding">
+            <a class="button" ng-click="mySearch()">Buscar</a>
+        </div>
+    </ion-content>
+<ion-view>
