@@ -154,24 +154,59 @@ function dbService($q){
 
     function getPublications(){
     	//if(!publications){
-            return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
-                publications = docs.rows.map(function(row){
-                    row.value._id = new Date(row.value._id);
-                    row.value.expirationDate = new Date(row.value.expirationDate);
+        return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
+            publications = docs.rows.map(function(row){
+                row.value._id = new Date(row.value._id);
+                row.value.expirationDate = new Date(row.value.expirationDate);
 
-                    return row.value;
-                });
+                return row.value;
+            });
 
-                db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
-                    .on('change', onDatabaseChange);
+            db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
+                .on('change', onDatabaseChange);
 
-                return publications;
-                }));
+            return publications;
+            }));
     	//}else{
     	//	return $q.when(publications);
     	//}
 
     };
+
+    function filterByBreed(value){
+        return $q.when(db.query(function (doc, emit) {
+            emit(doc.breed);
+        }, {key: value}).then(function (result) {
+            docs = result.rows.map(function(row){
+                row.value._id = new Date(row.value._id);
+                row.value.expirationDate = new Date(row.value.expirationDate);
+
+                return row.value;
+            });
+
+            return docs;
+        }).catch(function (err) {
+            return err
+            console.log('Breed filter error', JSON.stringify(err))
+        }));
+    }
+
+    function filterBySize(value){
+        return $q.when(db.query(function (doc, emit) {
+            emit(doc.size);
+        }, {key: value}).then(function (result) {
+            docs = result.rows.map(function(row){
+                row.value._id = new Date(row.value._id);
+                row.value.expirationDate = new Date(row.value.expirationDate);
+
+                return row.value;
+            });
+            return docs;
+        }).catch(function (err) {
+            return err;
+            console.log('Size filter error', JSON.stringify(err))
+        }));
+    }
 
     function addPublication(publication){
     	return $q.when(db.put(publication, function callback(err, result) {

@@ -143,12 +143,6 @@ angular.module('starter.controllers', ['starter.services'])
       });
   };
 
-  $scope.mySearch = function(breed){
-      console.log("Searching for: ",breed);
-      appDB.initDB();
-      appDB.getPublications(breed);
-  };
-
   $scope.fbShare = function (message) {
       var ids = auth.profile.identities;
       var isFB = false;
@@ -193,6 +187,25 @@ angular.module('starter.controllers', ['starter.services'])
   };
 
   $scope.doRefresh();
+})
+
+.controller('SearchCtrl', function($scope, $ionicModal, appDB){
+
+    $scope.breedSearch = function(breed){
+        console.log("Searching for: ", breed);
+        appDB.initDB();
+        appDB.filterByBreed(breed).then(function(filtereds){
+            $scope.foundDocs = filtereds;
+        });
+    };
+
+    $scope.sizeSearch = function(size){
+        console.log("Searching for: ", size);
+        appDB.initDB();
+        appDB.filterBySize(breed).then(function(filtereds){
+            $scope.foundDocs = filtereds;
+        });
+    };
 })
 
 .controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService, utilService) {
