@@ -202,7 +202,7 @@ angular.module('starter.controllers', ['starter.services'])
     $scope.sizeSearch = function(size){
         console.log("Searching for: ", size);
         appDB.initDB();
-        appDB.filterBySize(breed).then(function(filtereds){
+        appDB.filterBySize(size).then(function(filtereds){
             $scope.foundDocs = filtereds;
         });
     };
