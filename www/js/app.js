@@ -91,6 +91,15 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
         }
       }
     })
+    .state('app.search', {
+      url: '/search',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/search.html',
+          controller: 'SearchCtrl'
+        }
+      }
+    })
   .state('app.news', {
     cache: false,
     url: '/news',

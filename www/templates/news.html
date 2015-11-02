@@ -1,15 +1,6 @@
 <ion-view view-title="Publicaciones" ng-controller="PubCtrl">
 	<ion-content>
-		<!--SEARCH BAR -->
-		<div class="bar bar-header item-input-inset">
-			<label class="item-input-wrapper">
-				<i class="icon ion-ios-search placeholder-icon"></i>
-				<input type="search" placeholder="Search" ng-model="pub.search">
-			</label>
-			<button class="button button-clear" ng-click="mySearch(pub.search)">
-				Buscar
-			</button>
-		</div>
+		<!--News Feed -->
 		<ion-refresher pulling-text="Deslice para actualizar" on-refresh="doRefresh()">
 		</ion-refresher>
 		<div ng-repeat="card in docs">
