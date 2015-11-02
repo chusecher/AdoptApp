@@ -114,6 +114,7 @@ angular.module('starter.controllers', ['starter.services'])
 })
 
 .controller('PubsCtrl', function($scope, $q, $ionicPopup, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
+  
   getReporter = function(reporterID){
       return $q.when(authService.callUser(reporterID).then(function(reporter){
           return reporter.data;
@@ -189,23 +190,103 @@ angular.module('starter.controllers', ['starter.services'])
   $scope.doRefresh();
 })
 
-.controller('SearchCtrl', function($scope, $ionicModal, appDB){
+.controller('SearchCtrl', function($scope, $q, authService, $ionicModal, appDB, utilService){
+    $scope.search = {
+        bySize: false,
+        byBreed: true,
+        breed: 'Akita',
+        size: 2
+    }
+
+
+    getReporter = function(reporterID){
+        return $q.when(authService.callUser(reporterID).then(function(reporter){
+            return reporter.data;
+        }));
+    }
 
     $scope.breedSearch = function(breed){
         console.log("Searching for: ", breed);
-        appDB.initDB();
         appDB.filterByBreed(breed).then(function(filtereds){
+            for(var i in filtereds){
+                (function (i){
+                    appDB.getAttachment(filtereds[i]._id).then(function(blob){
+                        filtereds[i].pubImage = URL.createObjectURL(blob);
+                        return filtereds[i];
+                  });
+                    getReporter(filtereds[i].reporter).then(function(data){
+                        filtereds[i].reporterData = data;
+                        filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
+                        return filtereds[i];
+                    });
+                })(i);
+            }
             $scope.foundDocs = filtereds;
         });
     };
 
     $scope.sizeSearch = function(size){
         console.log("Searching for: ", size);
-        appDB.initDB();
         appDB.filterBySize(size).then(function(filtereds){
+            for(var i in filtereds){
+                (function (i){
+                    appDB.getAttachment(filtereds[i]._id).then(function(blob){
+                        filtereds[i].pubImage = URL.createObjectURL(blob);
+                        return filtereds[i];
+                  });
+                    getReporter(filtereds[i].reporter).then(function(data){
+                        filtereds[i].reporterData = data;
+                        filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
+                        return filtereds[i];
+                    });
+                })(i);
+            }
             $scope.foundDocs = filtereds;
         });
     };
+
+    $scope.bothSearch = function(size, breed){
+        console.log("Searching for: ", size, breed);
+        appDB.filterByBreed(breed).then(function(filtereds){
+            var refiltereds = []
+            for(var i=0; i<filtereds.length; i++){
+                if(filtereds[i].size === size){
+                    
+                    refiltereds.push(filtereds[i])
+                }
+            }
+            filtereds = refiltereds;
+            for(var i in filtereds){
+                
+                (function (i){
+                
+                    appDB.getAttachment(filtereds[i]._id).then(function(blob){
+                        filtereds[i].pubImage = URL.createObjectURL(blob);
+                        return filtereds[i];
+                    });
+                    getReporter(filtereds[i].reporter).then(function(data){
+                        filtereds[i].reporterData = data;
+                        filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
+                        return filtereds[i];
+                    });
+                })(i);
+            }
+            $scope.foundDocs = filtereds;
+        });
+    };
+
+    $scope.filter = function(breed, size){
+        if($scope.search.byBreed && !$scope.search.bySize){
+            $scope.breedSearch(breed);
+        }else if(!$scope.search.byBreed && $scope.search.bySize){
+            $scope.sizeSearch(size);
+        }else if($scope.search.byBreed && $scope.search.bySize){
+            $scope.bothSearch(size, breed);
+        }else{
+            $scope.foundDocs = [];
+        }
+
+    }
 })
 
 .controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService, utilService) {
@@ -243,7 +324,8 @@ angular.module('starter.controllers', ['starter.services'])
             $scope.reporter = reporter.data;
         });
     	$scope.pub = pub;
-    	$scope.latLng = new google.maps.LatLng($scope.pub.location.lat, $scope.pub.location.lng);
+        console.log(JSON.stringify(pub.location))
+    	$scope.latLng = new google.maps.LatLng(pub.location.lat, pub.location.lng);
 
 		$scope.mapOptions = {
 			center: $scope.latLng,
@@ -270,62 +352,71 @@ angular.module('starter.controllers', ['starter.services'])
         size: 2,
         reporter: auth.profile.user_id
     }
-  var defaultPic = "img/profile_default_pet.jpg";
-  var options = {timeout: 10000, enableHighAccuracy: true};
-  $cordovaGeolocation.getCurrentPosition(options).then(function(position){
-    $scope.pub.pos = {lat: position.coords.latitude, lng: position.coords.longitude};
+    var defaultPic = "img/profile_default_pet.jpg";
 
-  }, function(error){
-		console.log("Could not get location");
-  });
-  $scope.createPub = function(reporter, breed, size, description, name, pos, imageSrc){
-  	console.log('Creating register', reporter, breed, size, description, name, pos, imageSrc);
-    console.log("SRC", imageSrc);
-
-    blobUtil.imgSrcToBlob(imageSrc).then(function(blob){
-        var id = new Date();
-        id.setHours(id.getHours()-5);
-        var exp = new Date(id);
-        exp.setDate(id.getDate()+30)
-        var publication= {
-          _id: id.toISOString(),
-          expirationDate: exp.toISOString(),
-          reporter: reporter,
-          adopter: [],
-          description: description,
-          size: size,
-          breed: breed,
-          name: name,
-          state: 'ACTIVE',
-          type: 'animal',
-          location: pos,
-          _attachments:{
-              'pubImage': {
-                  content_type: 'image/jpg',
-                  data: blob
-              }
-          }
-        }
-        appDB.addPublication(publication).then(function(){
-            var alertPopup = $ionicPopup.alert({
-              title: '¡Publicación Exitosa!',
-              template: 'Tu publicación ha sido registrada con éxito'
-            });
-            $ionicHistory.nextViewOptions({
-                disableBack: true
-            });
-            $state.go('app.news');
-            $scope.myPicture = defaultPic;
-        }).catch(function(err){
-              console.log(JSON.stringify(err));
-            var alertPopup = $ionicPopup.alert({
-              title: 'Publicación Fallida',
-              template: 'Ha ocurrido un problema: ' + JSON.stringify(err)
-            });
-          });
-        console.log(JSON.stringify(publication));
+    var defaultPos = {lat: 4.658781, lng: -74.099271}
+    var options = {timeout: 10000, enableHighAccuracy: true};
+    $cordovaGeolocation.getCurrentPosition(options).then(function(position){
+        $scope.pub.pos = {lat: position.coords.latitude, lng: position.coords.longitude};
+        console.log(JSON.stringify($scope.pub.pos))
+    }, function(error){
+        $scope.pub.pos = defaultPos;
+        var alertPopup = $ionicPopup.alert({
+          title: '¡Error de localización!',
+          template: 'No se pudo procesar tu ubicación, se usará una ubicación por defecto'
+        });
+        console.log("Could not get location");
     });
-  }
+
+    $scope.createPub = function(reporter, breed, size, description, pos, name, imageSrc){
+      	console.log('Creating register', reporter, breed, size, description, name, pos, imageSrc);
+        console.log("SRC", imageSrc);
+
+        blobUtil.imgSrcToBlob(imageSrc).then(function(blob){
+            var id = new Date();
+            id.setHours(id.getHours());
+            var exp = new Date(id);
+            exp.setDate(id.getDate()+30)
+
+            var publication= {
+                _id: id.toISOString(),
+                expirationDate: exp.toISOString(),
+                reporter: reporter,
+                adopter: [],
+                description: description,
+                size: size,
+                breed: breed,
+                name: name,
+                state: 'ACTIVE',
+                type: 'animal',
+                location: pos,
+                _attachments:{
+                    'pubImage': {
+                        content_type: 'image/jpg',
+                        data: blob
+                    }
+                }
+            }
+            appDB.addPublication(publication).then(function(){
+                var alertPopup = $ionicPopup.alert({
+                    title: '¡Publicación Exitosa!',
+                    template: 'Tu publicación ha sido registrada con éxito'
+                });
+                $ionicHistory.nextViewOptions({
+                    disableBack: true
+                });
+                $state.go('app.news');
+                $scope.myPicture = defaultPic;
+            }).catch(function(err){
+                console.log(JSON.stringify(err));
+                var alertPopup = $ionicPopup.alert({
+                    title: 'Publicación Fallida',
+                    template: 'Ha ocurrido un problema: ' + JSON.stringify(err)
+                });
+            });
+            console.log(JSON.stringify(publication));
+        });
+    }
   //----------------------CAMERA---------------------
   // init variables
   $scope.myPicture = defaultPic;

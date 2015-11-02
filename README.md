@@ -1,4 +1,4 @@
-## AdoptApp [![Build Status][travis-image]][travis-url] [![NPM version][npm-image]][npm-url]
+## AdoptApp: Rescata animales y busca un hogar para ellos
 
 # Made by
 

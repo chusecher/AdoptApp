@@ -51,7 +51,7 @@ function utilService(){
           anio = fecha_actual.getFullYear();
 
           var fechaHora = date;
-          var horas = fechaHora.getHours()+offset;//GMT
+          var horas = fechaHora.getHours();//GMT
           var minutos = fechaHora.getMinutes();
           var segundos = fechaHora.getSeconds();
           var sufijo = 'AM';
@@ -99,13 +99,16 @@ function dbService($q){
         getPublication: getPublication,
         getUser: getUser,
         addUser: addUser,
-        getAttachment: getAttachment
+        getAttachment: getAttachment,
+        filterBySize: filterBySize,
+        filterByBreed: filterByBreed
     };
 
     function initDB(){
         //db = new PouchDB('adoptappdb');
-        db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb');
-/*
+        //var PouchDB = require('pouchdb').plugin(require('pouchdb-find'));
+        db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb', {auth: {username: 'admin', password: 'be82218489b1'}});
+/*      
         db.sync(remotedb, {
           live: true,
           retry: true
@@ -149,7 +152,6 @@ function dbService($q){
         }).catch(function (err) {
             // some error
         });
-
     };
 
     function getPublications(){
@@ -174,14 +176,14 @@ function dbService($q){
     };
 
     function filterByBreed(value){
-        return $q.when(db.query(function (doc, emit) {
+        return $q.when(db.query(function (doc) {
             emit(doc.breed);
-        }, {key: value}).then(function (result) {
-            docs = result.rows.map(function(row){
-                row.value._id = new Date(row.value._id);
-                row.value.expirationDate = new Date(row.value.expirationDate);
+        }, {key: value, include_docs:true}).then(function (result) {
+            var docs = result.rows.map(function(row){
+                row.doc._id = new Date(row.doc._id);
+                row.doc.expirationDate = new Date(row.doc.expirationDate);
 
-                return row.value;
+                return row.doc;
             });
 
             return docs;
@@ -192,14 +194,14 @@ function dbService($q){
     }
 
     function filterBySize(value){
-        return $q.when(db.query(function (doc, emit) {
+        return $q.when(db.query(function (doc) {
             emit(doc.size);
-        }, {key: value}).then(function (result) {
-            docs = result.rows.map(function(row){
-                row.value._id = new Date(row.value._id);
-                row.value.expirationDate = new Date(row.value.expirationDate);
+        }, {key: value, include_docs:true}).then(function (result) {
+            var docs = result.rows.map(function(row){
+                row.doc._id = new Date(row.doc._id);
+                row.doc.expirationDate = new Date(row.doc.expirationDate);
 
-                return row.value;
+                return row.doc;
             });
             return docs;
         }).catch(function (err) {
