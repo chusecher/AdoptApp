@@ -154,21 +154,37 @@ function dbService($q){
         });
     };
 
-    function getPublications(){
+    function getPublications(all){
     	//if(!publications){
-        return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
-            publications = docs.rows.map(function(row){
-                row.value._id = new Date(row.value._id);
-                row.value.expirationDate = new Date(row.value.expirationDate);
+        if(!all){
+            return $q.when(db.query('type_index/animal', {descending: true, attachments: true, limit: 10}).then(function(docs){
+                publications = docs.rows.map(function(row){
+                    row.value._id = new Date(row.value._id);
+                    row.value.expirationDate = new Date(row.value.expirationDate);
 
-                return row.value;
-            });
+                    return row.value;
+                });
 
-            db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
-                .on('change', onDatabaseChange);
+                db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
+                    .on('change', onDatabaseChange);
 
-            return publications;
-            }));
+                return publications;
+                }));
+        }else{
+            return $q.when(db.query('type_index/animal', {descending: true, attachments: true}).then(function(docs){
+                publications = docs.rows.map(function(row){
+                    row.value._id = new Date(row.value._id);
+                    row.value.expirationDate = new Date(row.value.expirationDate);
+
+                    return row.value;
+                });
+
+                db.changes({live: true, since: 'now', include_docs: true, filter: 'type_indes/animal'})
+                    .on('change', onDatabaseChange);
+
+                return publications;
+                }));
+        }
     	//}else{
     	//	return $q.when(publications);
     	//}

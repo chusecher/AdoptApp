@@ -22,16 +22,12 @@ angular.module('starter.controllers', ['starter.services'])
 
     appDB.getUser(auth.profile.user_id).then(function(user){
         $scope.activeUser = user;
-        console.log(user.rating);
     });
     $scope.updateUser = function(phone){
         var user = {
             _id: auth.profile.user_id,
             _rev: $scope.activeUser._rev,
-            phone: phone,
-            rating: 0,
-            type: 'user',
-            status: 'OK'
+            phone: phone
         }
         appDB.addUser(user).then(function(){
           var alertPopup = $ionicPopup.alert({
@@ -42,6 +38,9 @@ angular.module('starter.controllers', ['starter.services'])
               disableBack: true
           });
           $state.go('app.news', {}, {reload: true});
+            appDB.getUser(auth.profile.user_id).then(function(user){
+                $scope.activeUser = user;
+            });
         }, function(err){
             console.log(JSON.stringify(err))
           var alertPopup = $ionicPopup.alert({
@@ -123,7 +122,7 @@ angular.module('starter.controllers', ['starter.services'])
 
   $scope.doRefresh = function() {
       appDB.initDB();
-      pubs = appDB.getPublications();
+      pubs = appDB.getPublications(false);
       pubs.then(function(docs) {
           for(var i in docs){
               (function (i){
@@ -283,7 +282,23 @@ angular.module('starter.controllers', ['starter.services'])
         }else if($scope.search.byBreed && $scope.search.bySize){
             $scope.bothSearch(size, breed);
         }else{
-            $scope.foundDocs = [];
+            console.log("Searching for: Everything");
+            appDB.getPublications(true).then(function(filtereds){
+                for(var i in filtereds){
+                    (function (i){
+                        appDB.getAttachment(filtereds[i]._id).then(function(blob){
+                            filtereds[i].pubImage = URL.createObjectURL(blob);
+                            return filtereds[i];
+                      });
+                        getReporter(filtereds[i].reporter).then(function(data){
+                            filtereds[i].reporterData = data;
+                            filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
+                            return filtereds[i];
+                        });
+                    })(i);
+                }
+                $scope.foundDocs = filtereds;
+            });
         }
 
     }
@@ -368,7 +383,7 @@ angular.module('starter.controllers', ['starter.services'])
         console.log("Could not get location");
     });
 
-    $scope.createPub = function(reporter, breed, size, description, pos, name, imageSrc){
+    $scope.createPub = function(reporter, breed, size, description, name, pos, imageSrc){
       	console.log('Creating register', reporter, breed, size, description, name, pos, imageSrc);
         console.log("SRC", imageSrc);
 

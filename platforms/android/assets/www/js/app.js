@@ -82,16 +82,6 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
         }
       }
     })
-    .state('app.register', {
-      url: '/register',
-      views: {
-        'menuContent': {
-          templateUrl: 'templates/register.html',
-          controller: 'RegisCtrl'
-        }
-      }
-    })
-
     .state('app.myprofile', {
       url: '/myprofile',
       views: {
@@ -101,15 +91,15 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
         }
       }
     })
-  .state('app.single', {
-    url: '/playlists/:playlistId',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/playlist.html',
-        controller: 'PlaylistCtrl'
+    .state('app.search', {
+      url: '/search',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/search.html',
+          controller: 'SearchCtrl'
+        }
       }
-    }
-  })
+    })
   .state('app.news', {
     cache: false,
     url: '/news',
