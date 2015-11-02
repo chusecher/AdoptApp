@@ -165,11 +165,36 @@ angular.module('starter.controllers', ['starter.services'])
       }
       $scope.docs = docs;
   }));
+
   getReporter = function(reporterID){
       return authService.callUser(reporterID).then(function(reporter){
           return reporter.data;
       });
   }
+
+  $scope.doRefresh = function() {
+      
+      appDB.initDB();
+      pubs = appDB.getPublications();
+      $q.when(pubs.then(function(docs) {
+          for(var i in docs){
+              (function (i){
+                  appDB.getAttachment(docs[i]._id).then(function(blob){
+                      docs[i].pubImage = URL.createObjectURL(blob);
+                      return docs[i];
+                  });
+                  getReporter(docs[i].reporter).then(function(data){
+                      docs[i].reporterData = data;
+                      docs[i].showID = utilService.stringDate(new Date(docs[i]._id));
+                      return docs[i];
+                  });
+              })(i);
+          }
+          $scope.docs = docs;
+      }));
+      console.log("Aparently finished")
+      $scope.$broadcast('scroll.refreshComplete');
+  };
 
   $scope.fbShare = function (message) {
       var ids = auth.profile.identities;
