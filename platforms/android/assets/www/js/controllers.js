@@ -131,8 +131,8 @@ angular.module('starter.controllers', ['starter.services'])
             }
         });
 
-    }, function(){
-        //error
+    }, function(err){
+        console.log(JSON.stringify(err));
     });
 //    }
 })

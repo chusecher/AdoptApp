@@ -1,4 +1,4 @@
-<ion-view view-title="Mi Perfil">
+<ion-view view-title="Mi Perfil" ng-controller="PubCtrl">
     <ion-content>
         <!--<div class="bar bar-header bar-balanced">
             <h1 class="title">mi-nombre</h1>
@@ -29,17 +29,18 @@
                 Rating
                 <span class="badge badge-assertive">{{activeUser.rating}}%</span>
             </div>
-        </div>
             <button class="button button-block button-positive" ng-click="updateUser(newData.phone)">
                 Aplicar Cambios
             </button>
+        </div>
+
         <div class="list list-inset">
             <div class="item item-divider">
                 Mis Publicaciones
             </div>
             <div ng-repeat="card in foundDocs">
                 <div class="list">
-                    <a class="item item-avatar" href="#">
+                    <a class="item item-avatar" ng-click="openPub({{'card._id'}})">
                         <img src="{{card.pubImage}}">
                         <h2>{{card.name}}</h2>
                         <p>{{card.breed}}</p>

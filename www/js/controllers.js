@@ -52,7 +52,11 @@ angular.module('starter.controllers', ['starter.services'])
         var user = {
             _id: auth.profile.user_id,
             _rev: $scope.activeUser._rev,
-            phone: phone
+            phone: phone,
+            rating: $scope.activeUser.rating,
+            type: $scope.activeUser.type,
+            status: $scope.activeUser.status
+
         }
         appDB.addUser(user).then(function(){
           var alertPopup = $ionicPopup.alert({
@@ -115,7 +119,7 @@ angular.module('starter.controllers', ['starter.services'])
                     $state.go('app.myprofile');
                 });
             }else if (doc.status === "OK") {
-                console.log("Login", 'Usuario registrado', JSON.stringify(doc));
+                console.log("Login", 'Usuario registrado');
                 authService.callUser(auth.profile.user_id).then(function(user){
                     $scope.data = user.data;
                     var alertPopup = $ionicPopup.alert({
@@ -131,8 +135,8 @@ angular.module('starter.controllers', ['starter.services'])
             }
         });
 
-    }, function(){
-        //error
+    }, function(err){
+        console.log(JSON.stringify(err));
     });
 //    }
 })
@@ -219,7 +223,7 @@ angular.module('starter.controllers', ['starter.services'])
         bySize: false,
         byBreed: true,
         breed: 'Akita',
-        size: 2
+        size: "2"
     }
 
 
@@ -272,13 +276,16 @@ angular.module('starter.controllers', ['starter.services'])
     $scope.bothSearch = function(size, breed){
         console.log("Searching for: ", size, breed);
         appDB.filterByBreed(breed).then(function(filtereds){
+            console.log("Return length:",filtereds.length);
             var refiltereds = []
             for(var i=0; i<filtereds.length; i++){
-                if(filtereds[i].size === size){
-
+                console.log("The size",filtereds[i].size);
+                if(filtereds[i].size == size){
+                    console.log("Pushing the item")
                     refiltereds.push(filtereds[i])
                 }
             }
+            console.log(refiltereds.length);
             filtereds = refiltereds;
             for(var i in filtereds){
 
@@ -389,7 +396,7 @@ angular.module('starter.controllers', ['starter.services'])
     appDB.initDB();
     $scope.pub = {
         breed: "Akita",
-        size: 2,
+        size: "2",
         reporter: auth.profile.user_id
     }
     var defaultPic = "img/profile_default_pet.jpg";
@@ -398,7 +405,6 @@ angular.module('starter.controllers', ['starter.services'])
     var options = {timeout: 10000, enableHighAccuracy: true};
     $cordovaGeolocation.getCurrentPosition(options).then(function(position){
         $scope.pub.pos = {lat: position.coords.latitude, lng: position.coords.longitude};
-        console.log(JSON.stringify($scope.pub.pos))
     }, function(error){
         $scope.pub.pos = defaultPos;
         var alertPopup = $ionicPopup.alert({
@@ -409,9 +415,6 @@ angular.module('starter.controllers', ['starter.services'])
     });
 
     $scope.createPub = function(reporter, breed, size, description, name, pos, imageSrc){
-      	console.log('Creating register', reporter, breed, size, description, name, pos, imageSrc);
-        console.log("SRC", imageSrc);
-
         blobUtil.imgSrcToBlob(imageSrc).then(function(blob){
             var id = new Date();
             id.setHours(id.getHours());
@@ -454,7 +457,6 @@ angular.module('starter.controllers', ['starter.services'])
                     template: 'Ha ocurrido un problema: ' + JSON.stringify(err)
                 });
             });
-            console.log(JSON.stringify(publication));
         });
     }
   //----------------------CAMERA---------------------
