@@ -4,7 +4,7 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
+angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova', 'ngResource',
                             'auth0', 'angular-storage', 'starter.services', 'angular-jwt','ngOpenFB'])
 
 .run(function($ionicPlatform,$animate, $rootScope, auth, store, jwtHelper, $location, ngFB) {
@@ -110,6 +110,19 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova',
       }
     }
   })
+    .state('app.profile', {
+      url: '/?profileID',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/profile.html',
+          controller: 'ProfileCtrl'
+        }
+      },
+      params:{
+        profileID : null,
+        contact: false
+      }
+    })
 
   authProvider.init({
       domain:'adoptapp.auth0.com',

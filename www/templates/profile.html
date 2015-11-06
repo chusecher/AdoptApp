@@ -1,0 +1,38 @@
+<ion-view view-title="Perfil de Usuario">
+	<ion-content>
+		<div class="list list-inset">
+        <a class="item item-avatar" href="#">
+            <img src="{{reporter.picture}}">
+                <h2>{{reporter.name}}</h2>
+            <p>{{reporter.nickname}}</p>
+        </a>
+    </div>
+        <div class="list list-inset">
+            <div class="item item-divider">
+                Datos personales
+            </div>
+            <div class="item item-icon-left">
+                <i class="icon ion-person-stalker"></i>
+                E-Mail
+                <span class="item-note">{{reporter.email}}</span>
+            </div>
+            <div class="item item-icon-left">
+                <i class="icon ion-ios-telephone-outline"></i>
+                Teléfono
+                <span class="item-note">{{user.phone}}</span>
+            </div>
+            <div class="item item-icon-left">
+                <i class="icon ion-stats-bars"></i>
+                Reputación
+                <span class="badge badge-assertive">{{user.rating}}</span>
+            </div>
+        </div>
+        <div class="card" ng-if="contact">
+        	<p class="item item-text-wrap" 
+        		align="justify">Puedes contactar a este reportero por redes sociales o llamarle a través de este botón</p>
+        	<p class="item item-text-wrap" 
+        		align="justify">Recuerda que una vez concretada la adopción podrás calificar al reportero con una buena o mala reputación</p>
+            <a class="item button button-block button-balanced padding" ng-href="tel: {{user.phone}}">Llamar</a>
+        </div>
+	</ion-content>
+</ion-view>
