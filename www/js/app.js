@@ -83,6 +83,7 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova', 'ngReso
       }
     })
     .state('app.myprofile', {
+      cache: false,
       url: '/myprofile',
       views: {
         'menuContent': {

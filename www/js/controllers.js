@@ -1,6 +1,6 @@
 angular.module('starter.controllers', ['starter.services'])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout, appDB) {
+.controller('AppCtrl', function($scope, $state, $ionicModal, $timeout, appDB, $ionicHistory) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -10,20 +10,82 @@ angular.module('starter.controllers', ['starter.services'])
   //});
               //POUCHDB -------------
   appDB.initDB();
+  $scope.go = function(state){
+    $ionicHistory.nextViewOptions({
+        disableBack: true
+    });
+    $state.go(state, {}, {reload: true});
+  }
 })
 
-.controller('MyProfileCtrl', function($scope, $state, $ionicLoading, $ionicPopup, auth, appDB, $ionicHistory, $q, authService, utilService) {
+.controller('MyProfileCtrl', function(  $scope, $state, $ionicLoading,
+                                        $ionicPopup, auth, appDB, $ionicHistory, $q, authService, utilService) {
     appDB.initDB();
     $scope.activeUser;
+    $scope.adoptedList = [];
     $scope.auth = auth;
     $scope.newData = {
         phone: ''
     }
 
+    $scope.rate =  function(reporterID, pubID){
+        $scope.data = {};
+        var ratePopUp = $ionicPopup.show({
+            scope : $scope,
+            templateUrl: 'templates/rateModal.html',
+            title: "Califica al reportero",
+            buttons: [
+              { text: 'Cancelar' },
+              { text: '<b>Calificar</b>',
+                type: 'button-positive',
+                onTap: function(e) {
+                  if (!$scope.data.rating) {
+                    e.preventDefault();
+                  } else {
+                    return parseInt($scope.data.rating);
+                  }
+                }
+              }
+            ]
+        });
+        ratePopUp.then(function(res){
+            console.log("Guardado", typeof(res), reporterID);
+            appDB.getUser(reporterID).then(function(reporter){
+                reporter.rating += res;
+                console.log("The rating", reporter.rating);
+                appDB.addUser(reporter).then(function(){
+                    appDB.removePub(pubID).then(function(){
+                        console.log("Publicación removida")
+                        var alertPopup = $ionicPopup.alert({
+                            title: '¡Calificación exitosa!',
+                            template: 'Se ha concretado con éxito la adopción, la publicación ha sido removida'
+                        });
+                        $state.go($state.current, {}, {reload: true});
+                    }).catch(function(err){
+                        console.log("Error en remover", JSON.stringify(err))
+                    })                 
+                }).catch(function(err){
+                    console.log("Error calificar", JSON.stringify(err))
+                })
+            });
+
+        })
+
+    }
+
+    function contains(a, obj) {
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     appDB.getUser(auth.profile.user_id).then(function(user){
         $scope.activeUser = user;
     });
-    appDB.filterByReporter( auth.profile.user_id).then(function(filtereds){
+    appDB.filterByReporter(auth.profile.user_id).then(function(filtereds){
         for(var i in filtereds){
             (function (i){
                 appDB.getAttachment(filtereds[i]._id).then(function(blob){
@@ -39,7 +101,24 @@ angular.module('starter.controllers', ['starter.services'])
         }
         $scope.foundDocs = filtereds;
     });
-
+    appDB.getPublications(true).then(function(filtereds){
+        for(var i in filtereds){
+            if(contains(filtereds[i].adopter, auth.profile.user_id)){
+                (function (i){
+                    appDB.getAttachment(filtereds[i]._id).then(function(blob){
+                        filtereds[i].pubImage = URL.createObjectURL(blob);
+                        return filtereds[i];
+                  });
+                    getReporter(filtereds[i].reporter).then(function(data){
+                        filtereds[i].reporterData = data;
+                        filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
+                        return filtereds[i];
+                    });
+                })(i);
+                $scope.adoptedList.push(filtereds[i]);
+            }
+        } 
+    })
     getReporter = function(reporterID){
         return $q.when(authService.callUser(reporterID).then(function(reporter){
             return reporter.data;
@@ -373,13 +452,13 @@ angular.module('starter.controllers', ['starter.services'])
 	});
 
     function contains(a, obj) {
-    for (var i = 0; i < a.length; i++) {
-        if (a[i] === obj) {
-            return true;
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] === obj) {
+                return true;
+            }
         }
+        return false;
     }
-    return false;
-}
   $scope.closePub = function() {
     $scope.modal.hide();
     $scope.modal.remove();

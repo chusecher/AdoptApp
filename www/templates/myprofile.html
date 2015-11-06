@@ -47,6 +47,18 @@
                     </a>
                 </div>
             </div>
+            <div class="item item-divider">
+                Mis Adopciones
+            </div>
+            <div ng-repeat="card in adoptedList">
+                <div class="list">
+                    <a class="item item-avatar" ng-click="rate(card.reporter, card._id)">
+                        <img src="{{card.pubImage}}">
+                        <h2>{{card.name}}</h2>
+                        <p>{{card.breed}}</p>
+                    </a>
+                </div>
+            </div>
         </div>
     </ion-content>
 </ion-view>
