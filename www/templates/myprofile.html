@@ -45,6 +45,18 @@
                         <h2>{{card.name}}</h2>
                         <p>{{card.breed}}</p>
                     </a>
+                    <div class="item item-divider">
+                        Adoptantes
+                    </div>
+                    <div ng-repeat="adopter in card.adopter">
+                        <div class="list">
+                            <a class="item item-avatar" ng-click="goTo(adopter.id)">
+                                <img src="{{adopter.image}}">
+                                <h2>{{adopter.name}}</h2>
+                                <p>{{adopter.phone}}</p>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="item item-divider">

@@ -27,7 +27,9 @@ angular.module('starter.controllers', ['starter.services'])
     $scope.newData = {
         phone: ''
     }
-
+    $scope.goTo = function(adopterID){
+        $state.go('app.profile', {profileID: adopterID, contact: false})
+    }
     $scope.rate =  function(reporterID, pubID){
         $scope.data = {};
         var ratePopUp = $ionicPopup.show({
@@ -91,12 +93,34 @@ angular.module('starter.controllers', ['starter.services'])
                 appDB.getAttachment(filtereds[i]._id).then(function(blob){
                     filtereds[i].pubImage = URL.createObjectURL(blob);
                     return filtereds[i];
-              });
+                });
                 getReporter(filtereds[i].reporter).then(function(data){
                     filtereds[i].reporterData = data;
                     filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
                     return filtereds[i];
                 });
+
+                for(var j=0; j<filtereds[i].adopter.length; j++){
+                    (function (j){
+                        var adopterData = {
+                            id: filtereds[i].adopter
+                        }
+                        getReporter(filtereds[i].adopter[j]).then(function(aauth){
+                            appDB.getUser(aauth.user_id).then(function(apouch){
+                                var adopterData = {
+                                    id: aauth.user_id,
+                                    phone: apouch.phone,
+                                    name: aauth.name,
+                                    image: aauth.picture
+                                }
+                                filtereds[i].adopter[j] = adopterData
+                                return filtereds[i];
+                                
+                            })
+                        })
+                    })(j)
+                }
+                    
             })(i);
         }
         $scope.foundDocs = filtereds;
