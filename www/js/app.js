@@ -59,6 +59,7 @@ angular.module('starter', [ 'ionic', 'starter.controllers', 'ngCordova', 'ngReso
   $stateProvider
   .state('login', {
         url: '/login',
+        cache: false, 
         templateUrl: 'templates/login.html',
         controller: 'LoginCtrl'
     })

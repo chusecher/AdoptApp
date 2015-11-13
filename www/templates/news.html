@@ -22,23 +22,10 @@
 				    <a class="tab-item" ng-click="fbShare(card.description)">
 				      <i class="icon ion-social-facebook"></i>
 				    </a>
-				    <a class="tab-item twitter-share-button" href="https://twitter.com/intent/tweet?button_hashtag=AdoptApp&text=Reduce%20los%20animales%20viviendo%20en%20las%20calles!%20Adoptalos%20con%20AdoptApp%20ahora!">
+				    <a class="tab-item twitter-share-button" ng-click="promiseShare('twitter')">
 				      <i class="icon ion-social-twitter"></i>
-					  <script>
- 					 	!function(d,s,id){
- 					 		var js,
- 					 			fjs=d.getElementsByTagName(s)[0],
- 					 			p=/^http:/.test(d.location)?'http':'https';
- 					 		if(!d.getElementById(id)){
- 					 			js=d.createElement(s);
- 					 			js.id=id;
- 					 			js.src=p+'://platform.twitter.com/widgets.js';
- 					 			fjs.parentNode.insertBefore(js,fjs);
- 					 		}
- 					 	}(document, 'script', 'twitter-wjs');
- 					 </script>
-				  </a>
-				    <a class="tab-item g-plus" data-action="share">
+				  	</a>
+				    <a class="tab-item g-plus" ng-click="promiseShare('google')">
 				      <i class="icon ion-social-googleplus"></i>
 				    </a>
 		  		</div>

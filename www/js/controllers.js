@@ -1,6 +1,6 @@
 angular.module('starter.controllers', ['starter.services'])
 
-.controller('AppCtrl', function($scope, $state, $ionicModal, $timeout, appDB, $ionicHistory) {
+.controller('AppCtrl', function($scope, $state, $ionicModal, $timeout, appDB, $ionicHistory, auth, store, $ionicPopup) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -9,13 +9,23 @@ angular.module('starter.controllers', ['starter.services'])
   //$scope.$on('$ionicView.enter', function(e) {
   //});
               //POUCHDB -------------
-  appDB.initDB();
-  $scope.go = function(state){
-    $ionicHistory.nextViewOptions({
+    appDB.initDB();
+    $scope.go = function(state){
+        $ionicHistory.nextViewOptions({
         disableBack: true
     });
-    $state.go(state, {}, {reload: true});
-  }
+        $state.go(state, {}, {reload: true});
+    }
+    $scope.logout = function() {
+        var alertPopup = $ionicPopup.alert({
+            title: 'Cerrar Sesión',
+            template: '¡Hasta pronto ' + auth.profile.nickname + '!'
+        });
+        auth.signout();
+        store.remove('profile');
+        store.remove('token');
+        $state.go('login', {}, {reload:true});
+    }
 })
 
 .controller('MyProfileCtrl', function(  $scope, $state, $ionicLoading,
@@ -102,9 +112,6 @@ angular.module('starter.controllers', ['starter.services'])
 
                 for(var j=0; j<filtereds[i].adopter.length; j++){
                     (function (j){
-                        var adopterData = {
-                            id: filtereds[i].adopter
-                        }
                         getReporter(filtereds[i].adopter[j]).then(function(aauth){
                             appDB.getUser(aauth.user_id).then(function(apouch){
                                 var adopterData = {
@@ -296,6 +303,13 @@ angular.module('starter.controllers', ['starter.services'])
 
         });
     };
+
+    $scope.promiseShare = function (social){
+        var alertPopup = $ionicPopup.alert({
+            title: 'Compartir a través de ' + social,
+            template: 'Podrás compartir a través de ' + social + ' muy pronto'
+        });
+    }
 
   $scope.fbShare = function (message) {
       var ids = auth.profile.identities;
