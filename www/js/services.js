@@ -108,7 +108,7 @@ function dbService($q){
     function initDB(){
         //db = new PouchDB('adoptappdb');
         //var PouchDB = require('pouchdb').plugin(require('pouchdb-find'));
-        db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb', {auth: {username: 'admin', password: 'be82218489b1'}});
+        db = new PouchDB('https://adoptapp.smileupps.com/adoptappdb', {auth: {username: 'admin', password: 'b690aca5d376'}});
 /*
         db.sync(remotedb, {
           live: true,
