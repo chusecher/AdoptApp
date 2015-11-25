@@ -47,7 +47,6 @@ angular.module('starter.controllers', ['starter.services'])
             templateUrl: 'templates/rateModal.html',
             title: "Califica al reportero",
             buttons: [
-              { text: 'Cancelar' },
               { text: '<b>Calificar</b>',
                 type: 'button-positive',
                 onTap: function(e) {
@@ -61,6 +60,7 @@ angular.module('starter.controllers', ['starter.services'])
             ]
         });
         ratePopUp.then(function(res){
+            if(typeof(res) == undefined) return;
             console.log("Guardado", typeof(res), reporterID);
             appDB.getUser(reporterID).then(function(reporter){
                 reporter.rating += res;

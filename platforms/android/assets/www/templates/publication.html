@@ -43,14 +43,14 @@
             Contacto
         </div>
         <div class="reporter-info">
-            <a class="item item-avatar" href="#/app/myprofile" ng-click="closePub()">
+            <a class="item item-avatar" ng-click="go();closePub()">
               <img src="{{reporter.picture}}">
               <h2>{{reporter.nickname}}</h2>
               <p>Cuidador en proceso</p>
             </a>
         </div>
         <div class="button-bar bar-positive padding">
-            <a class="button">¡Adóptame!</a>
+            <a class="button" ng-click="adopt()">¡Adóptame!</a>
         </div>
     </ion-content>
 </ion-modal-view>

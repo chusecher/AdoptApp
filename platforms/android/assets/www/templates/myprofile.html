@@ -25,9 +25,9 @@
                 <input type="text" placeholder="{{activeUser.phone}}" ng-model="newData.phone">
             </label>
             <div class="item item-icon-left" href="#">
-                <i class="icon ion-person-stalker"></i>
-                Rating
-                <span class="badge badge-assertive">{{activeUser.rating}}%</span>
+                <i class="icon ion-stats-bars"></i>
+                Reputación
+                <span class="badge badge-assertive">{{activeUser.rating}}</span>
             </div>
             <button class="button button-block button-positive" ng-click="updateUser(newData.phone)">
                 Aplicar Cambios
@@ -41,6 +41,30 @@
             <div ng-repeat="card in foundDocs">
                 <div class="list">
                     <a class="item item-avatar" ng-click="openPub({{'card._id'}})">
+                        <img src="{{card.pubImage}}">
+                        <h2>{{card.name}}</h2>
+                        <p>{{card.breed}}</p>
+                    </a>
+                    <div class="item item-divider">
+                        Adoptantes
+                    </div>
+                    <div ng-repeat="adopter in card.adopter">
+                        <div class="list">
+                            <a class="item item-avatar" ng-click="goTo(adopter.id)">
+                                <img src="{{adopter.image}}">
+                                <h2>{{adopter.name}}</h2>
+                                <p>{{adopter.phone}}</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item item-divider">
+                Mis Adopciones
+            </div>
+            <div ng-repeat="card in adoptedList">
+                <div class="list">
+                    <a class="item item-avatar" ng-click="rate(card.reporter, card._id)">
                         <img src="{{card.pubImage}}">
                         <h2>{{card.name}}</h2>
                         <p>{{card.breed}}</p>

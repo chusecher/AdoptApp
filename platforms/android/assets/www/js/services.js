@@ -101,7 +101,8 @@ function dbService($q){
         getAttachment: getAttachment,
         filterBySize: filterBySize,
         filterByBreed: filterByBreed,
-        filterByReporter: filterByReporter
+        filterByReporter: filterByReporter,
+        removePub: removePub
     };
 
     function initDB(){
@@ -191,6 +192,13 @@ function dbService($q){
 
     };
 
+    function removePub(pubID){
+        return $q.when(db.get(pubID).then(function (doc) {
+            doc._deleted = true;
+            return db.put(doc);
+        }));
+    }
+
     function filterByBreed(value){
         return $q.when(db.query(function (doc) {
             emit(doc.breed);
@@ -239,7 +247,7 @@ function dbService($q){
             return docs;
         }).catch(function (err) {
             return err;
-            console.log('Size filter error', JSON.stringify(err))
+            console.log('Reporter filter error', JSON.stringify(err))
         }));
     }
 
@@ -298,4 +306,12 @@ function dbService($q){
 	    }
 	    return low;
 	}
+    function contains(a, obj) {
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
 };

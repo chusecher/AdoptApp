@@ -1,6 +1,6 @@
 angular.module('starter.controllers', ['starter.services'])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout, appDB) {
+.controller('AppCtrl', function($scope, $state, $ionicModal, $timeout, appDB, $ionicHistory, auth, store, $ionicPopup) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -9,39 +9,147 @@ angular.module('starter.controllers', ['starter.services'])
   //$scope.$on('$ionicView.enter', function(e) {
   //});
               //POUCHDB -------------
-  appDB.initDB();
+    appDB.initDB();
+    $scope.go = function(state){
+        $ionicHistory.nextViewOptions({
+        disableBack: true
+    });
+        $state.go(state, {}, {reload: true});
+    }
+    $scope.logout = function() {
+        var alertPopup = $ionicPopup.alert({
+            title: 'Cerrar Sesión',
+            template: '¡Hasta pronto ' + auth.profile.nickname + '!'
+        });
+        auth.signout();
+        store.remove('profile');
+        store.remove('token');
+        $state.go('login', {}, {reload:true});
+    }
 })
 
-.controller('MyProfileCtrl', function($scope, $state, $ionicPopup, auth, appDB, $ionicHistory, $q, authService, utilService) {
+.controller('MyProfileCtrl', function(  $scope, $state, $ionicLoading,
+                                        $ionicPopup, auth, appDB, $ionicHistory, $q, authService, utilService) {
     appDB.initDB();
     $scope.activeUser;
+    $scope.adoptedList = [];
     $scope.auth = auth;
     $scope.newData = {
         phone: ''
+    }
+    $scope.goTo = function(adopterID){
+        $state.go('app.profile', {profileID: adopterID, contact: false})
+    }
+    $scope.rate =  function(reporterID, pubID){
+        $scope.data = {};
+        var ratePopUp = $ionicPopup.show({
+            scope : $scope,
+            templateUrl: 'templates/rateModal.html',
+            title: "Califica al reportero",
+            buttons: [
+              { text: 'Cancelar' },
+              { text: '<b>Calificar</b>',
+                type: 'button-positive',
+                onTap: function(e) {
+                  if (!$scope.data.rating) {
+                    e.preventDefault();
+                  } else {
+                    return parseInt($scope.data.rating);
+                  }
+                }
+              }
+            ]
+        });
+        ratePopUp.then(function(res){
+            console.log("Guardado", typeof(res), reporterID);
+            appDB.getUser(reporterID).then(function(reporter){
+                reporter.rating += res;
+                console.log("The rating", reporter.rating);
+                appDB.addUser(reporter).then(function(){
+                    appDB.removePub(pubID).then(function(){
+                        console.log("Publicación removida")
+                        var alertPopup = $ionicPopup.alert({
+                            title: '¡Calificación exitosa!',
+                            template: 'Se ha concretado con éxito la adopción, la publicación ha sido removida'
+                        });
+                        $state.go($state.current, {}, {reload: true});
+                    }).catch(function(err){
+                        console.log("Error en remover", JSON.stringify(err))
+                    })                 
+                }).catch(function(err){
+                    console.log("Error calificar", JSON.stringify(err))
+                })
+            });
+
+        })
+
+    }
+
+    function contains(a, obj) {
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] === obj) {
+                return true;
+            }
+        }
+        return false;
     }
 
     appDB.getUser(auth.profile.user_id).then(function(user){
         $scope.activeUser = user;
     });
-
-    console.log("I am: ", auth.profile.user_id);
-    appDB.filterByReporter( auth.profile.user_id).then(function(filtereds){
+    appDB.filterByReporter(auth.profile.user_id).then(function(filtereds){
         for(var i in filtereds){
             (function (i){
                 appDB.getAttachment(filtereds[i]._id).then(function(blob){
                     filtereds[i].pubImage = URL.createObjectURL(blob);
                     return filtereds[i];
-              });
+                });
                 getReporter(filtereds[i].reporter).then(function(data){
                     filtereds[i].reporterData = data;
                     filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
                     return filtereds[i];
                 });
+
+                for(var j=0; j<filtereds[i].adopter.length; j++){
+                    (function (j){
+                        getReporter(filtereds[i].adopter[j]).then(function(aauth){
+                            appDB.getUser(aauth.user_id).then(function(apouch){
+                                var adopterData = {
+                                    id: aauth.user_id,
+                                    phone: apouch.phone,
+                                    name: aauth.name,
+                                    image: aauth.picture
+                                }
+                                filtereds[i].adopter[j] = adopterData
+                                return filtereds[i];
+                                
+                            })
+                        })
+                    })(j)
+                }
+                    
             })(i);
         }
         $scope.foundDocs = filtereds;
     });
-
+    appDB.getPublications(true).then(function(filtereds){
+        for(var i in filtereds){
+            if(contains(filtereds[i].adopter, auth.profile.user_id)){
+                (function (i){
+                    appDB.getAttachment(filtereds[i]._id).then(function(blob){
+                        filtereds[i].pubImage = URL.createObjectURL(blob);
+                        return filtereds[i];
+                  });
+                    getReporter(filtereds[i].reporter).then(function(data){
+                        filtereds[i].reporterData = data;
+                        filtereds[i].showID = utilService.stringDate(new Date(filtereds[i]._id));
+                        return filtereds[i];
+                    });
+                })(i);
+                $scope.adoptedList.push(filtereds[i]);
+            }
+        } 
+    })
     getReporter = function(reporterID){
         return $q.when(authService.callUser(reporterID).then(function(reporter){
             return reporter.data;
@@ -58,6 +166,7 @@ angular.module('starter.controllers', ['starter.services'])
             status: $scope.activeUser.status
 
         }
+        $ionicLoading.show({template: 'Cargando...'});
         appDB.addUser(user).then(function(){
           var alertPopup = $ionicPopup.alert({
               title: '¡Actualización Exitosa!',
@@ -70,7 +179,9 @@ angular.module('starter.controllers', ['starter.services'])
             appDB.getUser(auth.profile.user_id).then(function(user){
                 $scope.activeUser = user;
             });
+            $ionicLoading.hide();
         }, function(err){
+            $ionicLoading.hide();
             console.log(JSON.stringify(err))
           var alertPopup = $ionicPopup.alert({
               title: 'Actualización Fallida',
@@ -99,7 +210,7 @@ angular.module('starter.controllers', ['starter.services'])
 
         appDB.getUser(auth.profile.user_id).then(function(doc){
             if(doc.status === 404){
-                console.log("Usuario nuevo");
+                console.log("Login", "Usuario nuevo");
                 var user = {
                     _id : auth.profile.user_id,
                     phone: 'Escribe un número para que puedan contactarte',
@@ -132,6 +243,12 @@ angular.module('starter.controllers', ['starter.services'])
                     });
                     $state.go('app.news');
                 });
+            }else{
+                var alertPopup = $ionicPopup.alert({
+                    title: 'Error Fatal',
+                    template: 'Registro de usuario corrupto, ponerse en contacto con soporte'
+                });
+                $state.go($state.current, {}, {reload: true});
             }
         });
 
@@ -140,19 +257,33 @@ angular.module('starter.controllers', ['starter.services'])
     });
 //    }
 })
+.controller('ProfileCtrl', function($q, $scope, $stateParams, authService, appDB){
+    $scope.contact = $stateParams.contact;
+    getReporter = function(reporterID){
+        return $q.when(authService.callUser(reporterID).then(function(reporter){
+            return reporter.data;
+        }));
+    }
+    getReporter($stateParams.profileID).then(function(reporter){
+        $scope.reporter = reporter;
+    })
+    appDB.getUser($stateParams.profileID).then(function(user){
+        $scope.user = user;
+    })
+})
 
-.controller('PubsCtrl', function($scope, $q, $ionicPopup, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
+.controller('PubsCtrl', function($scope, $q, $ionicLoading, $ionicPopup, $state, $cordovaGeolocation, appDB, authService, utilService, ngFB, auth){
 
-  getReporter = function(reporterID){
-      return $q.when(authService.callUser(reporterID).then(function(reporter){
-          return reporter.data;
-      }));
-  }
+    getReporter = function(reporterID){
+        return $q.when(authService.callUser(reporterID).then(function(reporter){
+            return reporter.data;
+        }));
+    }
 
-  $scope.doRefresh = function() {
-      appDB.initDB();
-      pubs = appDB.getPublications(false);
-      pubs.then(function(docs) {
+    $scope.doRefresh = function() {
+        $ionicLoading.show({template: 'Cargando...'});
+        pubs = appDB.getPublications(false);
+        pubs.then(function(docs) {
           for(var i in docs){
               (function (i){
                   appDB.getAttachment(docs[i]._id).then(function(blob){
@@ -166,11 +297,19 @@ angular.module('starter.controllers', ['starter.services'])
                   });
               })(i);
           }
+          $ionicLoading.hide();
           $scope.docs = docs;
           $scope.$broadcast('scroll.refreshComplete');
 
-      });
-  };
+        });
+    };
+
+    $scope.promiseShare = function (social){
+        var alertPopup = $ionicPopup.alert({
+            title: 'Compartir a través de ' + social,
+            template: 'Podrás compartir a través de ' + social + ' muy pronto'
+        });
+    }
 
   $scope.fbShare = function (message) {
       var ids = auth.profile.identities;
@@ -189,8 +328,7 @@ angular.module('starter.controllers', ['starter.services'])
       console.log("Trying to share");
       var toky = auth.profile.identities[id].access_token;
 
-      console.log("Token",toky);
-
+      $ionicLoading.show({template: 'Compartiendo...'});
       ngFB.init({appId: '199784313686540', accessToken: toky});
       ngFB.api({
           method: 'POST',
@@ -200,6 +338,7 @@ angular.module('starter.controllers', ['starter.services'])
           }
       }).then(
           function () {
+              $ionicLoading.hide();
               console.log("Nice");
               var alertPopup = $ionicPopup.alert({
                   title: 'Facebook',
@@ -207,7 +346,7 @@ angular.module('starter.controllers', ['starter.services'])
               });
           },
           function (err) {
-              console.log("Tabarnacle", JSON.stringify(err));
+              $ionicLoading.hide();
               var alertPopup = $ionicPopup.alert({
                   title: 'Error',
                   template: JSON.stringify(err)
@@ -218,7 +357,7 @@ angular.module('starter.controllers', ['starter.services'])
   $scope.doRefresh();
 })
 
-.controller('SearchCtrl', function($scope, $q, authService, $ionicModal, appDB, utilService){
+.controller('SearchCtrl', function($scope, $q, authService, $ionicModal, $ionicLoading, appDB, utilService){
     $scope.search = {
         bySize: false,
         byBreed: true,
@@ -235,6 +374,7 @@ angular.module('starter.controllers', ['starter.services'])
 
     $scope.breedSearch = function(breed){
         console.log("Searching for: ", breed);
+        $ionicLoading.show({template: 'Buscando...'});
         appDB.filterByBreed(breed).then(function(filtereds){
             for(var i in filtereds){
                 (function (i){
@@ -249,12 +389,14 @@ angular.module('starter.controllers', ['starter.services'])
                     });
                 })(i);
             }
+            $ionicLoading.hide();
             $scope.foundDocs = filtereds;
         });
     };
 
     $scope.sizeSearch = function(size){
         console.log("Searching for: ", size);
+        $ionicLoading.show({template: 'Buscando...'});
         appDB.filterBySize(size).then(function(filtereds){
             for(var i in filtereds){
                 (function (i){
@@ -269,23 +411,21 @@ angular.module('starter.controllers', ['starter.services'])
                     });
                 })(i);
             }
+            $ionicLoading.hide();
             $scope.foundDocs = filtereds;
         });
     };
 
     $scope.bothSearch = function(size, breed){
         console.log("Searching for: ", size, breed);
+        $ionicLoading.show({template: 'Buscando...'});
         appDB.filterByBreed(breed).then(function(filtereds){
-            console.log("Return length:",filtereds.length);
             var refiltereds = []
             for(var i=0; i<filtereds.length; i++){
-                console.log("The size",filtereds[i].size);
                 if(filtereds[i].size == size){
-                    console.log("Pushing the item")
                     refiltereds.push(filtereds[i])
                 }
             }
-            console.log(refiltereds.length);
             filtereds = refiltereds;
             for(var i in filtereds){
 
@@ -302,6 +442,7 @@ angular.module('starter.controllers', ['starter.services'])
                     });
                 })(i);
             }
+            $ionicLoading.hide();
             $scope.foundDocs = filtereds;
         });
     };
@@ -315,7 +456,9 @@ angular.module('starter.controllers', ['starter.services'])
             $scope.bothSearch(size, breed);
         }else{
             console.log("Searching for: Everything");
+            $ionicLoading.show({template: 'Buscando...'});
             appDB.getPublications(true).then(function(filtereds){
+
                 for(var i in filtereds){
                     (function (i){
                         appDB.getAttachment(filtereds[i]._id).then(function(blob){
@@ -329,6 +472,7 @@ angular.module('starter.controllers', ['starter.services'])
                         });
                     })(i);
                 }
+                $ionicLoading.hide();
                 $scope.foundDocs = filtereds;
             });
         }
@@ -336,7 +480,7 @@ angular.module('starter.controllers', ['starter.services'])
     }
 })
 
-.controller('PubCtrl', function($scope, $state, $ionicModal, $cordovaGeolocation, appDB, authService, utilService) {
+.controller('PubCtrl', function($scope, $state, $ionicLoading, $ionicPopup, $ionicModal, $ionicLoading, $cordovaGeolocation, appDB, authService, utilService, auth) {
 
 	$ionicModal.fromTemplateUrl('templates/publication.html', {
 		scope: $scope,
@@ -345,6 +489,14 @@ angular.module('starter.controllers', ['starter.services'])
 		$scope.modal = modal;
 	});
 
+    function contains(a, obj) {
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
   $scope.closePub = function() {
     $scope.modal.hide();
     $scope.modal.remove();
@@ -358,12 +510,16 @@ angular.module('starter.controllers', ['starter.services'])
 	});
   };
 
+  $scope.go = function(){
+    $state.go('app.profile', {profileID: $scope.reporter.user_id, contact: false})
+  }
+
   // Open the publication modal details window
 
   $scope.openPub = function(pubId) {
+    $ionicLoading.show({template: 'Cargando...'});
     appDB.getPublication(pubId).then(function(pub){
         pub.showID = utilService.stringDate(new Date(pub._id));
-        console.log(pub.showID);
         blobUtil.base64StringToBlob(pub._attachments.pubImage.data).then(function(blob){
             $scope.pubImageURL = URL.createObjectURL(blob);
         })
@@ -371,7 +527,6 @@ angular.module('starter.controllers', ['starter.services'])
             $scope.reporter = reporter.data;
         });
     	$scope.pub = pub;
-        console.log(JSON.stringify(pub.location))
     	$scope.latLng = new google.maps.LatLng(pub.location.lat, pub.location.lng);
 
 		$scope.mapOptions = {
@@ -379,6 +534,7 @@ angular.module('starter.controllers', ['starter.services'])
 			zoom: 15,
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
+        $ionicLoading.hide();
 		$scope.modal.show();
     	$scope.map = new google.maps.Map(document.getElementById("map"), $scope.mapOptions);
     	$scope.flag = new google.maps.InfoWindow({map: $scope.map});
@@ -386,12 +542,41 @@ angular.module('starter.controllers', ['starter.services'])
     	$scope.flag.setContent('Ubicación aproximada');
 
     });
-
-
   };
+  $scope.adopt = function(){
+    $ionicLoading.show({template: 'Registrando...'});
+    appDB.getPublication($scope.pub._id).then(function(original){
+        if(!contains(original.adopter, auth.profile.user_id) && auth.profile.user_id !== original.reporter){
+            original.adopter.push(auth.profile.user_id);
+        }else{
+            $ionicLoading.hide();
+            var alertPopup = $ionicPopup.alert({
+                title: 'Error en adopción',
+                template: 'Ya estas registrado para adoptar esta mascota o fuiste quien la publicó'
+            });
+            return;
+        }
+        
+        appDB.addPublication(original).then(function(){
+            $ionicLoading.hide();
+            var alertPopup = $ionicPopup.alert({
+                title: '¡Adopción Exitosa!',
+                template: 'Has sido registrado como adoptante de esta mascota, se le notificará al cuidador en proceso y puedes contactarlo inmediatamente'
+            });            
+            $state.go('app.profile',{profileID: $scope.reporter.user_id, contact: true});
+            $scope.closePub();
+        }).catch(function(err){
+            $ionicLoading.hide();
+            var alertPopup = $ionicPopup.alert({
+                title: 'Error en adopción',
+                template: 'No pudiste ser registrado: '+JSON.stringify(err)
+            });
+        })
+    })
+  }
 })
 
-.controller('PublishCtrl', function($scope, $state, $location, $cordovaGeolocation, $ionicHistory,
+.controller('PublishCtrl', function($scope, $state, $location, $cordovaGeolocation, $ionicHistory, $ionicLoading,
                                     $ionicPopup, GetUU, appDB, auth, camService) {
     appDB.initDB();
     $scope.pub = {
@@ -411,7 +596,6 @@ angular.module('starter.controllers', ['starter.services'])
           title: '¡Error de localización!',
           template: 'No se pudo procesar tu ubicación, se usará una ubicación por defecto'
         });
-        console.log("Could not get location");
     });
 
     $scope.createPub = function(reporter, breed, size, description, name, pos, imageSrc){
@@ -440,6 +624,7 @@ angular.module('starter.controllers', ['starter.services'])
                     }
                 }
             }
+            $ionicLoading.show({template: 'Publicando...'});
             appDB.addPublication(publication).then(function(){
                 var alertPopup = $ionicPopup.alert({
                     title: '¡Publicación Exitosa!',
@@ -448,10 +633,11 @@ angular.module('starter.controllers', ['starter.services'])
                 $ionicHistory.nextViewOptions({
                     disableBack: true
                 });
+                $ionicLoading.hide();
                 $state.go('app.news');
                 $scope.myPicture = defaultPic;
             }).catch(function(err){
-                console.log(JSON.stringify(err));
+                $ionicLoading.hide();
                 var alertPopup = $ionicPopup.alert({
                     title: 'Publicación Fallida',
                     template: 'Ha ocurrido un problema: ' + JSON.stringify(err)
@@ -503,7 +689,6 @@ angular.module('starter.controllers', ['starter.services'])
     };
     $scope.getPicture = function(options){
         camService.getPicture(options).then(function(picture){
-            console.log("Photo", picture);
             $scope.myPicture = picture;
         }, function(err){
             var alertPopup = $ionicPopup.alert({
