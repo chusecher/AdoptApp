@@ -60,7 +60,6 @@ angular.module('starter.controllers', ['starter.services'])
             ]
         });
         ratePopUp.then(function(res){
-            if(typeof(res) == undefined) return;
             console.log("Guardado", typeof(res), reporterID);
             appDB.getUser(reporterID).then(function(reporter){
                 reporter.rating += res;
